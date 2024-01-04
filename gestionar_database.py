@@ -234,7 +234,11 @@ class Gestionar_usuarios():
         return data
     
     def existe_el_usuario(self, nombre):
-        return encriptar(nombre).lower() in self.listar_usuarios()
+        for i in self.listar_usuarios():
+            if desencriptar(i.lower) == nombre.lower():
+                return True
+
+        return False
     
     def es_el_usuario(self, nombre: str, clave: str):
         if self.existe_el_usuario(nombre):

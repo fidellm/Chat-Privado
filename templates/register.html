@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Iniciar Sesión</title>
+  <title>Registrarse</title>
 </head>
 <body>
 
@@ -93,7 +93,7 @@
 
     <div class="login-container">
       
-        <h1>Iniciar sesión</h1>
+        <h1>Registrarse</h1>
 
         <form id="loginForm" method="POST">
             
@@ -105,7 +105,8 @@
             {% endif %}
             {%endwith%}
             
-            <label for="nickname" id="nickname" >Nombre de usuario:</label>
+            <label for="nickname" id="nickname" >Nombre de usuario
+            (no pongas tu nombre real):</label>
             <br>
             <input type="text" name="username" required>
             <br>
@@ -117,7 +118,7 @@
 
             <label for="password">Contraseña de acceso al servidor y sus funciones</label>
             <br>
-            <input type="password" name="server_password">
+            <input type="password" name="server_password" required>
             <br>
 
             <label for="remember" id="lbl_remember">Recordarme? </label>

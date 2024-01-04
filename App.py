@@ -115,7 +115,7 @@ def register():
     
     
     if request.method == "POST":
-        nombre = request.form["username"].lower()
+        nombre = request.form["username"]
         clave = request.form["user_password"]
         ultima_conexion = get_time_now()
         
@@ -129,7 +129,7 @@ def register():
             flash("El nombre de usuario debe tener como máximo 10 caracteres")
         elif len(request.form["username"]) < 4:
             flash("El nombre debe tener como mínimo 4 caracteres")
-        elif "alpha" in request.form["username"].lower():
+        elif saber_si_se_parece_admin(nombre):
             flash("El nombre 'Alpha' está reservado para el administrador")
         elif (gs.encriptar(request.form["username"]), ) in gestionar.listar_nombres():
             flash("El usuario '" + nombre + "' ya está registrado")
