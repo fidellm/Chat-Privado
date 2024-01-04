@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from flask import Flask, redirect, render_template, request, session, url_for, flash
 import time
-import crear_database as gs
+import gestionar_database as gs
 import random
 
 def crear_secret_key(caracteres: int):
@@ -37,7 +37,24 @@ messages = []
 
 clave_super_secreta = "judnjota"
 
-clave_super_usuario = "arrozfilo27"
+array_admins = {"Alpha": "arrozfilo27", "Corvus": "1920"}
+
+def saber_si_se_parece_admin(nombre):
+    for i in array_admins:
+        if nombre.lower in i.lower():
+            return True
+    return False
+
+def saber_si_es_admin(name: str, password: str):
+    for i in array_admins:
+        if i.lower() == name.lower() and array_admins[i] == password:
+            return True
+    
+    return False
+        
+
+def get_time_now():
+    return datetime.now().strftime("%H:%M:%S")
 
 def add_message(username, message):
     """ Add messages to the 'messages' list """
@@ -45,7 +62,7 @@ def add_message(username, message):
     """ 2nd set of {} refers to 2nd argument = message """
     """ Python can accept either {1} or {} """
     if message != "" or message.replace(" ", "") != "":
-        now = datetime.now().strftime("%H:%M:%S") # new variable = now
+        now = get_time_now() # new variable = now
     
         messages.append({"timestamp": now, "from": username, "message":message})
 
@@ -57,11 +74,15 @@ def Index():
     """ Main page with instructions """
     if request.method == "POST":
         session["username"] = request.form["username"]
+        session["user_password"] = request.form["clave-usuario"]
+        
+        username = session["username"]
+        user_password = session["user_password"]
         
         gestionar = gs.Gestionar_usuarios("DATABASE")
         
-        if request.form["username"] == "Alpha" and request.form["clave-usuario"] == clave_super_usuario:
-            session["clave_super_secreta"] = request.form["clave"]
+        if username in array_admins and user_password == array_admins[username]:
+            session["clave_super_secreta"] = clave_super_secreta
 #            add_message("Gestión del servidor", "'" + session["username"] + "'" + " se ha unido")
             return redirect(url_for("user_page"))
         elif "alpha" in request.form["username"].lower():
@@ -87,7 +108,7 @@ def Index():
 #        add_message("Gestión del servidor", "'" + session["username"] + "'" + " se ha unido")
 #        return redirect(url_for("user", username=session["username"]))
     
-    return render_template("index.html") # 'index.html' now replaces message
+    return render_template("login.html") # 'index.html' now replaces message
 
 @app.route('/user_page')
 def user_page():
@@ -109,7 +130,7 @@ def register():
     if request.method == "POST":
         nombre = request.form["username"]
         clave = request.form["clave"]
-        ultima_conexion = datetime.now().strftime("%Y:%M:%D:%H:%M:%S")
+        ultima_conexion = get_time_now()
         
         gestionar = gs.Gestionar_usuarios("DATABASE")
         
@@ -148,7 +169,7 @@ def go_chat():
 
 
 @app.route('/chat/public/go', methods = ["GET", "POST"])
-def user():
+def chat_public():
     """ Add & Display chat messages. {0} = username argument """
     """ username & messages get added to the list """
 
@@ -181,7 +202,7 @@ def user():
 @app.route('/chat/public/delete')
 def delete_chat():
     try:
-        if session["username"] == "" or session["username"] != "Alpha":
+        if session["username"] == "" or not (saber_si_es_admin(name= session["username"], password= session["user_password"])):
             return redirect(url_for("Index"))
     except:
         return redirect(url_for("Index"))
@@ -189,7 +210,7 @@ def delete_chat():
     global messages
     messages = []
     
-    return redirect(url_for("user", username=session["username"]))
+    return redirect(url_for("chat_public", username=session["username"]))
     
 
 print(clave_super_secreta +""" es la clave super secreta
