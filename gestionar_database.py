@@ -156,6 +156,7 @@ class Gestionar_usuarios():
                 UPDATE usuarios 
                 SET nombre = '{nombre}',
                     clave = '{clave}',
+                    primera_conexion = '{primera_conexion}',
                     ultima_conexion = '{ultima_conexion}'
                 WHERE rowid = {rowid};
                 """)
@@ -231,6 +232,16 @@ class Gestionar_usuarios():
         conexion.commit()
         
         return data
+    
+    def existe_el_usuario(self, nombre):
+        return encriptar(nombre).lower() in self.listar_usuarios()
+    
+    def es_el_usuario(self, nombre: str, clave: str):
+        if self.existe_el_usuario(nombre):
+            nombre = encriptar(nombre)
+            return self.pedir_clave_por_nombre(nombre) == encriptar(clave)
+        
+        return False
 
 class Gestionar_Amigos():
     def __init__(self, database: str = "DATABASE") -> None:

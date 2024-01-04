@@ -73,34 +73,34 @@ chat = messages
 def Index():
     """ Main page with instructions """
     if request.method == "POST":
-        session["username"] = request.form["username"]
-        session["user_password"] = request.form["clave-usuario"]
+        session["username"] = request.form["username"].title()
+        session["user_password"] = request.form["user_password"]
         
         username = session["username"]
         user_password = session["user_password"]
         
         gestionar = gs.Gestionar_usuarios("DATABASE")
         
-        if username in array_admins and user_password == array_admins[username]:
-            session["clave_super_secreta"] = clave_super_secreta
+        if saber_si_es_admin(name= username, password= user_password):
+            session["server_password"] = clave_super_secreta
 #            add_message("Gestión del servidor", "'" + session["username"] + "'" + " se ha unido")
             return redirect(url_for("user_page"))
-        elif "alpha" in request.form["username"].lower():
-            flash("El nombre 'Alpha' está reservado para el administrador")
+        elif saber_si_se_parece_admin(username):
+            flash(f"El nombre '{username}' está reservado para el administrador.")
         elif request.form["username"].replace(" ", "") == "":
             pass
-        elif not ((gs.encriptar(request.form["username"]), ) in gestionar.listar_nombres()):
+        elif not ((gs.encriptar(username), ) in gestionar.listar_nombres()):
             flash("El usuario '" + request.form["username"] + "' no existe")
         elif request.form["clave"] == clave_super_secreta and request.form["username"].replace(" ", "") != "":
             clave_verdadera = gestionar.pedir_clave_por_nombre(session["username"])
-            if request.form["clave-usuario"] == clave_verdadera:
-                session["password-user"] = request.form["clave-usuario"]
-                session["clave_super_secreta"] = request.form["clave"]
+            if request.form["user_password"] == clave_verdadera:
+                session["user_password"] = request.form["user_password"]
+                session["server_password"] = request.form["server_password"]
 #                add_message("Gestión del servidor", "'" + session["username"] + "'" + " se ha unido")
                 return redirect(url_for("user_page"))
             else:
                 flash("Esa no es la contraseña del usuario.")
-        elif request.form["clave"] != clave_super_secreta:
+        elif request.form["server_password"] != clave_super_secreta:
             flash("Esa no es la clave super secreta.")
             
         
@@ -110,26 +110,13 @@ def Index():
     
     return render_template("login.html") # 'index.html' now replaces message
 
-@app.route('/user_page')
-def user_page():
-    try:
-        username = session["username"]
-        if username == "":
-            return redirect(url_for("Index"))
-    except:
-        return redirect(url_for("Index"))
-    
-    return render_template("menu_user.html", username = username)
-
-
-
 @app.route('/register', methods = ["GET", "POST"])
 def register():
     
     
     if request.method == "POST":
-        nombre = request.form["username"]
-        clave = request.form["clave"]
+        nombre = request.form["username"].lower()
+        clave = request.form["user_password"]
         ultima_conexion = get_time_now()
         
         gestionar = gs.Gestionar_usuarios("DATABASE")
@@ -152,7 +139,19 @@ def register():
             return redirect(url_for('Index'))
     
     return render_template("register.html")
-        
+
+
+@app.route('/user_page')
+def user_page():
+    try:
+        username = session["username"]
+        if username == "":
+            return redirect(url_for("Index"))
+    except:
+        return redirect(url_for("Index"))
+    
+    return render_template("menu_user.html", username = username)
+
 
 @app.route('/chat', methods = ["GET", "POST"])
 def go_chat():    
