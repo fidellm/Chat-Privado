@@ -164,7 +164,7 @@ def go_chat():
     
     add_message("Gestión del servidor", "'" + username + "'" + " se ha unido")
 
-    return redirect(url_for("user"))
+    return redirect(url_for("chat_public"))
 
 
 @app.route('/chat/public/go', methods = ["GET", "POST"])

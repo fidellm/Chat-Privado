@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Iniciar Sesión</title>
+</head>
+<body>
+
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #000;
+        color: #0f0;
+        font-family: 'Courier New', Courier, monospace;
+        line-height: 1.6;
+      }
+
+      h1 {
+        padding: 0px;
+        border-bottom-style: solid;
+        border-bottom-color: #e00;
+      }
+      
+      .login-container {
+        text-align: center;
+      }
+      
+      
+      
+      form {
+        margin-top: 2rem;
+      }
+
+      #lbl_remember {
+        display: inline;
+      }
+      
+      label {
+        display: block;
+        color: #e00000;
+        margin-bottom: 0px;
+      }
+      label:hover {
+        color: #eee;
+      }
+
+      #remember {
+        display: inline;
+      }
+      
+      input {
+        padding: 0.8rem;
+        border: 1px solid #0f0;
+        border-radius: 5px;
+        background-color: #000;
+        color: #0f0;
+        margin-bottom: 1rem;
+        margin-top: 0px;
+      }
+      
+      button {
+        padding: 0.8rem 2rem;
+        border: 1px solid #0f0;
+        border-radius: 5px;
+        background-color: #001100;
+        color: #0f0;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      
+      button:hover {
+        background-color: #005500;
+      }
+      
+      button:active {
+        background-color: #00ff00;
+      }
+
+      a {
+        margin-top: 300px;
+        color: #eee;
+      }
+      a:hover {
+        color: #e00;
+      }
+      
+    </style>
+
+    <div class="login-container">
+      
+        <h1>Iniciar sesión</h1>
+
+        <form id="loginForm" method="POST">
+            
+            {% with messages = get_flashed_messages() %}
+            {% if messages %}
+            {% for message in messages %}
+            <h3>{{ message }}</h3>
+            {% endfor %}
+            {% endif %}
+            {%endwith%}
+            
+            <label for="nickname" id="nickname" >Nombre de usuario:</label>
+            <br>
+            <input type="text" name="username">
+            <br>
+
+            <label for="user_password">Tu contraseña</label>
+            <br>
+            <input type="password" name="user_password">
+            <br>
+
+            <label for="password">Contraseña de acceso al servidor y sus funciones</label>
+            <br>
+            <input type="password" name="server_password">
+            <br>
+
+            <label for="remember" id="lbl_remember">Recordarme? </label>
+            <input type="checkbox" name="remember" id="remember">
+            <br>
+
+            <button type="submit" class="btn_go">Ingresar</button>
+        </form>
+
+        <a href="/register" id="go_register">¿No tienes un usuario? Crea uno.</a>
+
+    </div>
+
+</body>
+</html>
