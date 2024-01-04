@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Página de Inicio de Usuario Hacker</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <style>
+        body {
+            background-color: #000;
+            color: #0f0;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        header {
+            padding: 1rem;
+            border-bottom: 2px solid #00f;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .menu-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+        
+        .menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            background-color: #000;
+            border: 2px solid #00f;
+            border-radius: 5px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            width: 150px;
+        }
+        
+        .menu-icon {
+            font-size: 24px;
+            cursor: pointer;
+            padding: 1rem;
+            border: 2px solid #00f;
+            border-radius: 5px;
+            color: #00f;
+        }
+        
+        input[type="checkbox"] {
+            display: none;
+        }
+        
+        input[type="checkbox"]:checked + .menu {
+            max-height: 200px;
+        }
+        
+        main {
+            margin-top: 2rem;
+            text-align: center;
+        }
+        
+        button {
+            padding: 1rem 2rem;
+            margin: 1rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        button:hover {
+            transform: scale(1.1);
+        }
+  
+    </style>
+
+
+  <div class="container">
+    <header class="hack-effect" style="color: #00f; background-color: #000;">Bienvenido, Usuario</header>
+    <div class="menu-container">
+      <input type="checkbox" id="menu-toggle">
+      <label for="menu-toggle" class="menu-icon" style="color: #00f; background-color: #000;">&#9776;</label>
+      <ul class="menu hack-effect" style="border-color: #00f; background-color: #000;">
+        <li><a href="#" style="color: #00f;">Configuración</a></li>
+        <li><a href="#" style="color: #00f;">Amigos</a></li>
+        <li><a href="#" style="color: #00f;">Otros</a></li>
+      </ul>
+    </div>
+    <main>
+      <button class="button-distort" style="background-color: #000; color: #00f;">Chat Público</button>
+      <button class="button-distort" style="background-color: #000; color: #00f;">Chat Privado</button>
+    </main>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+    const menuToggle = document.getElementById("menu-toggle");
+    const menu = document.querySelector(".menu");
+  
+    menuToggle.addEventListener("change", function () {
+      if (menuToggle.checked) {
+        menu.style.maxHeight = menu.scrollHeight + "px";
+      } else {
+        menu.style.maxHeight = "0";
+      }
+    });
+  });
+  </script>
+</body>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat Privado - Estilo Hacker</title>
+<link rel="stylesheet" href="static/styles.css">
+</head>
+<body>
+  <div class="chat-container">
+    <h1 class="hack-effect">Chat Privado</h1>
+    <div class="message-container" id="messageContainer">
+      <!-- Aquí se cargarán los mensajes -->
+    </div>
+    <form id="messageForm">
+      <input type="text" id="messageInput" placeholder="Type your message here..." required>
+      <button type="submit">Send</button>
+    </form>
+  </div>
+  <script src="static/script.js"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const messageForm = document.getElementById("messageForm");
+        const messageInput = document.getElementById("messageInput");
+        const messageContainer = document.getElementById("messageContainer");
+        let focused = false;
+      
+        if (localStorage.getItem('savedMessage')) {
+          messageInput.value = localStorage.getItem('savedMessage');
+        }
+      
+        messageInput.addEventListener('focus', function () {
+          focused = true;
+        });
+      
+        messageInput.addEventListener('blur', function () {
+          focused = false;
+        });
+      
+        messageForm.addEventListener("submit", function (event) {
+          event.preventDefault();
+          localStorage.setItem('savedMessage', messageInput.value);
+          // Agrega aquí la lógica para enviar el mensaje
+          messageInput.value = '';
+        });
+      
+        setInterval(function () {
+          if (!focused) {
+            location.reload();
+          }
+        }, 2000);
+      });
+      
+  </script>
+</body>
+</html>
