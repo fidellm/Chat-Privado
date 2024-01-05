@@ -179,7 +179,7 @@ class Gestionar_usuarios():
         cursor = conexion.cursor()
         cursor.execute("""SELECT nombre FROM usuarios""")
         
-        data = cursor.fetchall()
+        data = cursor.fetchall()[0]
         
         conexion.commit()
         
@@ -233,16 +233,15 @@ class Gestionar_usuarios():
         
         return data
     
-    def existe_el_usuario(self, nombre):
-        for i in self.listar_usuarios():
-            if desencriptar(i.lower) == nombre.lower():
+    def existe_el_usuario(self, nombre: str):
+        for i in self.listar_nombres():
+            if desencriptar(i).lower() == nombre.lower():
                 return True
 
         return False
     
     def es_el_usuario(self, nombre: str, clave: str):
         if self.existe_el_usuario(nombre):
-            nombre = encriptar(nombre)
             return self.pedir_clave_por_nombre(nombre) == encriptar(clave)
         
         return False
@@ -318,3 +317,5 @@ class Gestionar_Amigos():
 
 #variable = gestionar.listar_solicitudes()
 #print(desencriptar_varios_arrays(variable))
+
+print(desecriptar_array(Gestionar_usuarios().listar_nombres()))

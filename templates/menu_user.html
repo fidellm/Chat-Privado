@@ -93,7 +93,7 @@ button:hover {
 
   <div class="container">
     <header class="hack-effect" style="color: #00f; background-color: #000;">
-      <h1>Bienvenido, Usuario</h1>
+      <h1>Bienvenido, <span style="color: #e00;">{{ username }}</span></h1>
     </header>
     <div class="menu-container">
       <input type="checkbox" id="menu-toggle">
@@ -105,7 +105,8 @@ button:hover {
       </ul>
     </div>
     <main>
-      <button class="button-distort" style="background-color: #000; color: #00f;">Chat Público</button>
+
+      <a href="/chat/public/go" class="button-distort" style="background-color: #000; color: #00f;">Chat Público</a>
       <button class="button-distort" style="background-color: #000; color: #00f;">Chat Privado</button>
     </main>
   </div>

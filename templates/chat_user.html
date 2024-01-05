@@ -8,9 +8,16 @@
 </head>
 <body>
   <div class="chat-container">
-    <h1 class="hack-effect">Chat Privado</h1>
+    <h1 class="hack-effect">{{ titulo }}</h1>
     <div class="message-container" id="messageContainer">
       <!-- Aquí se cargarán los mensajes -->
+      
+      {% if messages %}
+      {% for message in messages %}
+      <p><span class="hora">{{ message.timestamp }}<</span> <span class="emisor">{{ message.from }}</span></p>
+      <p>{{ message.message }}</p>
+      {% endfor %}
+      {% endif %}
     </div>
     <form id="messageForm">
       <input type="text" id="messageInput" placeholder="Type your message here..." required>

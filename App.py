@@ -37,11 +37,11 @@ messages = []
 
 clave_super_secreta = "judnjota"
 
-array_admins = {"Alpha": "arrozfilo27", "Corvus": "1920"}
+array_admins = {"alpha": "arrozfilo27", "corvus": "1920"}
 
 def saber_si_se_parece_admin(nombre):
     for i in array_admins:
-        if nombre.lower in i.lower():
+        if nombre.lower() in i.lower():
             return True
     return False
 
@@ -67,13 +67,12 @@ def add_message(username, message):
         messages.append({"timestamp": now, "from": username, "message":message})
 
 
-chat = messages
 
 @app.route('/', methods = ["GET", "POST"]) # route decorator that aligns to index.html
 def Index():
     """ Main page with instructions """
     if request.method == "POST":
-        session["username"] = request.form["username"].title()
+        session["username"] = str(request.form["username"])
         session["user_password"] = request.form["user_password"]
         
         username = session["username"]
@@ -82,6 +81,9 @@ def Index():
         gestionar = gs.Gestionar_usuarios("DATABASE")
         
         if saber_si_es_admin(name= username, password= user_password):
+            print("si es admin")
+            session["username"] = session["username"].title()
+            username = session["username"]
             session["server_password"] = clave_super_secreta
 #            add_message("Gestión del servidor", "'" + session["username"] + "'" + " se ha unido")
             return redirect(url_for("user_page"))
@@ -89,16 +91,18 @@ def Index():
             flash(f"El nombre '{username}' está reservado para el administrador.")
         elif request.form["username"].replace(" ", "") == "":
             pass
-        elif not ((gs.encriptar(username), ) in gestionar.listar_nombres()):
+        elif not gestionar.existe_el_usuario(nombre=username):
             flash("El usuario '" + request.form["username"] + "' no existe")
-        elif request.form["clave"] == clave_super_secreta and request.form["username"].replace(" ", "") != "":
-            clave_verdadera = gestionar.pedir_clave_por_nombre(session["username"])
-            if request.form["user_password"] == clave_verdadera:
+        elif request.form["server_password"] == clave_super_secreta and username.replace(" ", "") != "":
+            if gestionar.es_el_usuario(nombre=username, clave=user_password):
                 session["user_password"] = request.form["user_password"]
                 session["server_password"] = request.form["server_password"]
 #                add_message("Gestión del servidor", "'" + session["username"] + "'" + " se ha unido")
                 return redirect(url_for("user_page"))
             else:
+                session["username"] = ""
+                session["user_password"] = ""
+                session["server_password"] = ""
                 flash("Esa no es la contraseña del usuario.")
         elif request.form["server_password"] != clave_super_secreta:
             flash("Esa no es la clave super secreta.")
@@ -134,7 +138,7 @@ def register():
         elif (gs.encriptar(request.form["username"]), ) in gestionar.listar_nombres():
             flash("El usuario '" + nombre + "' ya está registrado")
         else:
-            gestionar.agregar_usuario(nombre, clave, ultima_conexion)
+            gestionar.agregar_usuario(nombre, clave, ultima_conexion, ultima_conexion)
             flash("Se agregó exitosamente el usuario!")
             return redirect(url_for('Index'))
     
@@ -146,14 +150,21 @@ def user_page():
     try:
         username = session["username"]
         if username == "":
+            print("el username está vacio")
+            flash("Intentaste entrar al menú de usuario sin iniciar sesion.")
             return redirect(url_for("Index"))
     except:
+        print(session)
+        print("hubo un error")
+        flash("Intentaste entrar al menú de usuario sin iniciar sesion.")
         return redirect(url_for("Index"))
+    
+    session["go_chat"] = False
     
     return render_template("menu_user.html", username = username)
 
 
-@app.route('/chat', methods = ["GET", "POST"])
+@app.route('/chat/public/go', methods = ["GET", "POST"])
 def go_chat():    
     try:
         username = session["username"]
@@ -162,12 +173,14 @@ def go_chat():
     except:
         return redirect(url_for("user_page"))
     
+    session["go_chat"] = True
+    
     add_message("Gestión del servidor", "'" + username + "'" + " se ha unido")
 
     return redirect(url_for("chat_public"))
 
 
-@app.route('/chat/public/go', methods = ["GET", "POST"])
+@app.route('/chat/public', methods = ["GET", "POST"])
 def chat_public():
     """ Add & Display chat messages. {0} = username argument """
     """ username & messages get added to the list """
@@ -183,6 +196,8 @@ def chat_public():
         username = session["username"]
         if username == "":
             return redirect(url_for("Index"))
+        elif not session["go_chat"]:
+            return redirect(url_for("menu_user"))
     except:
         return redirect(url_for("Index"))
     
