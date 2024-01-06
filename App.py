@@ -5,6 +5,7 @@ import time
 import gestionar_database as gs
 import random
 
+
 def crear_secret_key(caracteres: int):
     retornar = ""
     
@@ -165,13 +166,25 @@ def user_page():
 
 
 @app.route('/chat/public/go', methods = ["GET", "POST"])
-def go_chat():    
+def go_chat():
+    
     try:
         username = session["username"]
+        user_password = session["user_password"]
+        gestionar = gs.Gestionar_usuarios("DATABASE")
+    
         if username == "":
+            flash("No iniciaste sesión")
+            return redirect(url_for("Index"))
+        elif not gestionar.es_el_usuario(nombre=username, clave=user_password):
+            flash(f"Intentaste infiltrarte al servidor con el nombre de usuario {username}. No lo vuelvas a intentar...")
+            print(f"Alguien quiso infiltrarse con el nombre de usuario '{username}'")
             return redirect(url_for("Index"))
     except:
         return redirect(url_for("user_page"))
+    
+    if not saber_si_es_admin(name=username, password=user_password):
+        gestionar.actualizar_ultima_conexion(username, get_time_now())
     
     session["go_chat"] = True
     

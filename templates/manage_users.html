@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+    <table>
+        <thead>
+            <tr>
+                <td>ID</td>
+                <td>Nombre</td>
+                <td>Clave</td>
+                <td>Primera Conexión</td>
+                <td>Última Conexión</td>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.0 }}</td>
+                <td>{{ user.1 }}</td>
+                <td onclick="mostrar_clave('{{ user.0 }}', '{{ user.2 }}')" id="td_clave{{ user.0 }}"></td>
+                <td>{{ user.3 }}</td>
+                <td>{{ user.4 }}</td>
+                <td><a href="/manage_users/edit{{ user.0 }}">editar</a></td>
+                <td><a href="/manage_users/delete{{ user.0 }}">eliminar</a></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        function mostrar_clave(id, clave) {
+            let td_clave = document.getElementById("td_clave" + id);
+
+            if ("" + td_clave.value == "") {
+                td_clave.value = "" + clave;
+            }
+
+        }
+    </script>
+    
+</body>
+</html>
