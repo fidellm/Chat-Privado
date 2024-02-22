@@ -15,6 +15,7 @@ def encriptar(texto: str):
         
         nuevo_texto = nuevo_texto + chr(ch)
     
+#    nuevo_texto = nuevo_texto[::-1]
     return nuevo_texto
 
 def desencriptar(texto: str):
@@ -30,6 +31,7 @@ def desencriptar(texto: str):
         
         nuevo_texto = nuevo_texto + chr(ch)
     
+#    nuevo_texto = nuevo_texto[::-1]
     return nuevo_texto
 
 def desecriptar_array(array):
@@ -123,7 +125,7 @@ class Gestionar_usuarios():
                 """)
         
         
-    def eliminar_usuario(self, id):
+    def eliminar_usuario(self, id: int):
         ejecutar_comando(self.database, f"""DELETE FROM usuarios WHERE rowid = {id}""")
     
     def pedir_usuario(self, nombre):
@@ -132,7 +134,10 @@ class Gestionar_usuarios():
         cursor = conexion.cursor()
         cursor.execute(f"""SELECT rowid, * FROM usuarios WHERE nombre = '{encriptar(nombre)}' """)
         
-        data = cursor.fetchall()[0]
+        try:
+            data = cursor.fetchall()[0]
+        except IndexError:
+            return []
         
         conexion.commit()
         
@@ -167,7 +172,10 @@ class Gestionar_usuarios():
         cursor = conexion.cursor()
         cursor.execute("""SELECT rowid, * FROM usuarios""")
         
-        data = cursor.fetchall()
+        try:
+            data = cursor.fetchall()
+        except IndexError:
+            return []
         
         conexion.commit()
         
@@ -179,7 +187,10 @@ class Gestionar_usuarios():
         cursor = conexion.cursor()
         cursor.execute("""SELECT nombre FROM usuarios""")
         
-        data = cursor.fetchall()[0]
+        try:
+            data = cursor.fetchall()[0]
+        except IndexError:
+            return []
         
         conexion.commit()
         
@@ -234,9 +245,13 @@ class Gestionar_usuarios():
         return data
     
     def existe_el_usuario(self, nombre: str):
-        for i in self.listar_nombres():
-            if desencriptar(i).lower() == nombre.lower():
-                return True
+        
+        try:
+            for i in self.listar_nombres():
+                if desencriptar(i).lower() == nombre.lower():
+                    return True
+        except IndexError:
+            pass
 
         return False
     
@@ -318,4 +333,6 @@ class Gestionar_Amigos():
 #variable = gestionar.listar_solicitudes()
 #print(desencriptar_varios_arrays(variable))
 
-print(desecriptar_array(Gestionar_usuarios().listar_nombres()))
+#print(desencriptar_varios_arrays(Gestionar_usuarios().listar_id_nombre_primera_ultima_conexion()))
+
+desecriptar_array(Gestionar_usuarios().listar_nombres())

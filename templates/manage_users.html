@@ -28,6 +28,7 @@
                 <td><a href="/manage_users/edit{{ user.0 }}">editar</a></td>
                 <td><a href="/manage_users/delete{{ user.0 }}">eliminar</a></td>
             </tr>
+            {% endfor %}
         </tbody>
     </table>
 
@@ -35,8 +36,11 @@
         function mostrar_clave(id, clave) {
             let td_clave = document.getElementById("td_clave" + id);
 
-            if ("" + td_clave.value == "") {
-                td_clave.value = "" + clave;
+            
+            if (td_clave.value == undefined) {
+                td_clave.textContent = "" + clave;
+            } else {
+                td_clave.textContent = "";
             }
 
         }

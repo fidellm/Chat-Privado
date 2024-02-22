@@ -1,1 +1,3 @@
-print("arRoz".title())
+import datetime
+
+print(datetime.timezone())
