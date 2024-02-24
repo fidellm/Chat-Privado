@@ -43,6 +43,32 @@ clave_super_secreta = "judnjota"
 
 array_admins = {"alpha": "arrozfilo27", "corvus": "1920"}
 
+lista_usuarios_en_el_chat_public = []
+usuarios_bloqueados_del_chat_public = []
+
+def quitar_usuario_lista_en_chat_public(name: str):
+    contador = 0
+    
+    for i in lista_usuarios_en_el_chat_public:
+        print(i)
+        print(i['name'])
+        if i['name'] == name:
+            lista_usuarios_en_el_chat_public.pop(contador)
+            
+        contador += 1
+            
+
+def agregar_usuario_lista_en_chat_public(name: str, is_admin: bool):
+    gestionar = gs.Gestionar_usuarios("DATABASE")
+    
+    quitar_usuario_lista_en_chat_public(name= name)
+    
+    
+    lista_usuarios_en_el_chat_public.append( { 'id': gestionar.obtener_id_por_nombre(nombre= name), 'name': name, 'is_admin': is_admin} )
+    
+    
+    
+
 def saber_si_se_parece_admin(nombre):
     for i in array_admins:
         if nombre.lower() in i.lower():
@@ -101,6 +127,8 @@ def Index():
     except:
         username = ''
         user_password = ''
+    
+    quitar_usuario_lista_en_chat_public(username)
     
     if not gestionar.es_el_usuario(nombre=username, clave=user_password):
         session['username'] = ''
@@ -168,6 +196,11 @@ def register():
     session['remember_me'] = False
     session['go_chat'] = False
     
+    try:
+        quitar_usuario_lista_en_chat_public(session['username'])
+    except:
+        pass
+    
     if request.method == "POST":
         username = request.form["username"]
         user_password = request.form["user_password"]
@@ -201,7 +234,7 @@ def register():
                 session['username'] = username
                 session['user_password'] = user_password
                 flash('Bienvenido a La Red...')
-            else:            
+            else:
                 flash("Se agregó exitosamente el usuario!")
             
             return redirect(url_for('Index'))
@@ -245,7 +278,6 @@ def user_page():
             print(f"EL USUARIO '{username}' NO TIENE LA CONTRASEÑA CORRECTA!")
             return redirect(url_for('clean_user'))
         
-        
     except:
         print(session)
         print("hubo un error")
@@ -253,6 +285,8 @@ def user_page():
         return redirect(url_for("clean_user"))
     
     session["go_chat"] = False
+    quitar_usuario_lista_en_chat_public(username)
+    
     
     if es_admin:
         print(f"El usuario ROOT '{username}' ingresó a /user_page")
@@ -300,16 +334,18 @@ def go_chat():
         username = session["username"]
         user_password = session["user_password"]
         gestionar = gs.Gestionar_usuarios("DATABASE")
+        
+        es_admin = saber_si_es_admin(name= username, password= user_password)
     
         if username == "":
             flash("No iniciaste sesión")
-            return redirect(url_for("Index"))
-        elif saber_si_es_admin(name= username, password= user_password):
+            return redirect(url_for("clean_user"))
+        elif es_admin:
             pass
         elif not gestionar.es_el_usuario(nombre=username, clave=user_password):
             flash(f"Intentaste infiltrarte al servidor con el nombre de usuario {username}. No lo vuelvas a intentar...")
             print(f"Alguien quiso infiltrarse con el nombre de usuario '{username}'")
-            return redirect(url_for("Index"))
+            return redirect(url_for("clean_user"))
     except:
         return redirect(url_for("user_page"))
     
@@ -318,6 +354,8 @@ def go_chat():
         gestionar.actualizar_ultima_conexion(username, get_time_now())
     
     session["go_chat"] = True
+    
+    agregar_usuario_lista_en_chat_public(name= username, is_admin= es_admin)
     
     add_message("Gestión del servidor", "'" + username + "'" + " se ha unido", True)
 
@@ -355,16 +393,20 @@ def chat_public():
     except:
         pass
     
+    
+    agregar_usuario_lista_en_chat_public(name= username, is_admin= es_admin)
+    
+    #quitar_usuario_lista_online_en_chat_public(username)
+    print(lista_usuarios_en_el_chat_public)
+    
+    
     if request.method == "POST":
         add_message(username=username, message=message)
         print(messages)
         return redirect(url_for('chat_public'))
     
     
-    if not es_admin:
-        return render_template("chat_user.html", username = username, messages = messages[::-1], title = 'Chat Público')
-    else:
-        return render_template("chat_user.html", username = username, messages = messages[::-1], title= 'Chat público')
+    return render_template("chat_user.html", username = username, is_admin = es_admin, messages = messages[::-1], users_in_chat_public = lista_usuarios_en_el_chat_public, title= 'Chat público')
 
 
 @app.route('/chat/public/delete')

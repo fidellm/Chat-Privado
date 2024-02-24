@@ -7,6 +7,8 @@
 </head>
 <body>
 
+    <button onclick="borrar_todo()">Borrar todo</button>
+
     <table>
         <thead>
             <tr>
@@ -22,25 +24,43 @@
             <tr>
                 <td>{{ user.0 }}</td>
                 <td>{{ user.1 }}</td>
-                <td onclick="mostrar_clave('{{ user.0 }}', '{{ user.2 }}')" id="td_clave{{ user.0 }}"></td>
+                <td> <p id="p_clave{{ user.0 }}"></p> </td>
                 <td>{{ user.3 }}</td>
                 <td>{{ user.4 }}</td>
                 <td><a href="/manage_users/edit{{ user.0 }}">editar</a></td>
                 <td><a href="/manage_users/delete{{ user.0 }}">eliminar</a></td>
+                <td> <button onclick="mostrar_clave('{{ user.0 }}', '{{ user.2 }}')" id="td_clave{{ user.0 }}"> Mostrar/Ocultar clave</button> </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
     <script>
-        function mostrar_clave(id, clave) {
-            let td_clave = document.getElementById("td_clave" + id);
 
-            
-            if (td_clave.value == undefined) {
-                td_clave.textContent = "" + clave;
+        var se_mostro_clave = false;
+        var id_mostro_clave = null;
+
+        function borrar_todo() {
+            document.write("")
+        }
+
+        function mostrar_clave(id, clave) {
+            let p_clave = document.getElementById("p_clave" + id);
+
+            if (! se_mostro_clave) {
+                p_clave.textContent = "" + clave;
+
+                se_mostro_clave = true;
+                id_mostro_clave = id;
+
             } else {
-                td_clave.textContent = "";
+
+                p_clave = document.getElementById("p_clave" + id_mostro_clave)
+
+                p_clave.textContent = "";
+
+                se_mostro_clave = false;
+
             }
 
         }

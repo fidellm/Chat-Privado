@@ -244,6 +244,23 @@ class Gestionar_usuarios():
         
         return data
     
+    def obtener_id_por_nombre(self, nombre: str):
+        nombre = encriptar(nombre)
+
+        try:
+            conexion = sqlite3.connect(self.database)
+
+            cursor = conexion.cursor()
+            cursor.execute(f"""SELECT rowid FROM usuarios WHERE nombre = '{nombre}'""")
+            
+            data = cursor.fetchall()[0][0]
+            
+            conexion.commit()
+            
+            return data
+        except:
+            return None
+    
     def existe_el_usuario(self, nombre: str):
         
         try:
@@ -326,13 +343,9 @@ class Gestionar_Amigos():
         return data
         
 
-#gestionar = Gestionar_Amigos()
-
-#variable = gestionar.mandar_solicitud_amigo("Filo", "Bravo")
-
 #variable = gestionar.listar_solicitudes()
 #print(desencriptar_varios_arrays(variable))
 
 #print(desencriptar_varios_arrays(Gestionar_usuarios().listar_id_nombre_primera_ultima_conexion()))
 
-desecriptar_array(Gestionar_usuarios().listar_nombres())
+print(desencriptar_varios_arrays(Gestionar_usuarios().listar_id_nombre_clave()))

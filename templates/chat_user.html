@@ -10,9 +10,12 @@
 
   <style>
     body {
+      /*
       display: flex;
       justify-content: center;
       align-items: center;
+      */
+
       height: 100vh;
       margin: 0;
       padding: 0;
@@ -146,8 +149,28 @@
       word-wrap: break-word; /* Agregado para permitir saltos de línea */
     }
 
+    #div_users-chat-public {
+      display: flexbox;
+
+      text-align: left;
+      /*
+      max-width: 600px;
+      width: 80%;
+      */
+
+      max-height: 1000px;
+
+      margin: 0;
+
+      box-sizing: border-box;
+
+      border-style: solid;
+      border-color: #eee;
+    }
+
 
     /* Media query para pantallas más pequeñas */
+    
     @media screen and (max-width: 600px) {
       .chat-container {
         padding: 10px;
@@ -157,6 +180,8 @@
         margin-bottom: 10px;
       }
     }
+    
+
   </style>
 
 
@@ -180,7 +205,50 @@
       <textarea type="text" id="messageInput" name="message" placeholder="Escribe tu mensaje aquí..." required></textarea>
       <button type="submit">Enviar</button>
     </form>
+
+    
+    {% if is_admin %}
+    <form action="/chat/public/delete" method="get">
+      <button type="submit">borrar chat</button>
+    </form>
+
+
+    {% else %}
+      <h1>Capo, no sos admin</h1>
+
+    {% endif %}
+
   </div>
+
+  <br>
+  {% if is_admin %}
+
+  <div id="div_users-chat-public">
+    {% if users_in_chat_public %}
+
+    <h3>Usuarios en el chat público</h3>
+      <ul>
+      {% for user in users_in_chat_public%}
+        <li>
+          {{ users_in_chat_public.Alpha }}
+          {% if user.is_admin %}
+          {{ user.name }}, admin
+
+          {% else %}
+          {{ user.name }}, id: {{ user.id }}, {{ user.is_admin }}
+
+          {% endif %}
+        </li>
+      {% endfor %}
+      </ul>
+
+      {% else %}
+        <h3>No hay ningún usuario en el chat público</h3>
+
+    {% endif %}
+
+  </div>
+  {% endif %}
 
   <script>
     
@@ -225,7 +293,7 @@
         if (!focused) {
           location.reload();
         }
-      }, 5000);
+      }, 500000000000);
     });
     
     
