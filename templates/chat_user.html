@@ -16,7 +16,9 @@
       align-items: center;
       */
 
+      /*
       height: 100vh;
+      */
       margin: 0;
       padding: 0;
       background-color: #000;
@@ -105,8 +107,23 @@
       margin-bottom: 16px;
       box-sizing: border-box;
     }
+
+    .message-container button {
+      
+      width: 16%;
+
+      border: 1px solid #f00;
+      border-radius: 5px;
+      background-color: #550000;
+      color: #f00;
+      cursor: pointer;
+    }
+
+    .message-container button:hover {
+      background-color: #550000;
+    }
     
-    button {
+    form button {
       width: 30%;
       padding: 0.8rem 2rem;
       border: 1px solid #0f0;
@@ -117,11 +134,11 @@
       transition: background-color 0.3s;
     }
     
-    button:hover {
+    form button:hover {
       background-color: #005500;
     }
     
-    button:active {
+    form button:active {
       background-color: #00ff00;
     }
 
@@ -195,8 +212,19 @@
       
       {% if messages %}
       {% for message in messages %}
-      <p class="data-message"><span class="hora">{{ message.timestamp }}<</span> <span class="emisor">{{ message.from }}</span></p>
+
+      {% if is_admin %}
+      <p class="data-message"><span class="hora">{{ message.timestamp }}< </span> <span class="emisor">{{ message.from }}</span></p>
       <p class="message-message">{{ message.message }}</p>
+
+      <button onclick="borrar_mensaje('{{ message.id_message }}')">borrar</button>
+
+      {% else %}
+      <p class="data-message"><span class="hora">{{ message.timestamp }}< </span> <span class="emisor">{{ message.from }}</span></p>
+      <p class="message-message">{{ message.message }}</p>
+      
+      {% endif %}
+
       {% endfor %}
       {% endif %}
 
@@ -235,7 +263,7 @@
           {{ user.name }}, admin
 
           {% else %}
-          {{ user.name }}, id: {{ user.id }}, {{ user.is_admin }}
+          {{ user.name }}, id: {{ user.id }}, no admin
 
           {% endif %}
         </li>
@@ -251,6 +279,10 @@
   {% endif %}
 
   <script>
+
+    function borrar_mensaje(id_message) {
+      window.location.href = '/chat/public/delete/' + id_message;
+    }
     
     document.addEventListener("DOMContentLoaded", function () {
       const messageContainer = document.getElementById("messageContainer");
@@ -293,7 +325,7 @@
         if (!focused) {
           location.reload();
         }
-      }, 500000000000);
+      }, 2000);
     });
     
     

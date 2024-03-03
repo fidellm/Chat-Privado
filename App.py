@@ -39,9 +39,11 @@ app.secret_key = os.getenv("SECRET", secret_key)
 
 messages = []
 
-clave_super_secreta = "judnjota"
+clave_super_secreta = "amigos1234"
 
-array_admins = {"alpha": "arrozfilo27", "corvus": "1920"}
+array_admins = {"alpha": "arrozfilo27", "corvus": "1920", "delta": "nacho1234"}
+
+lista_usuarios_registrados = []
 
 lista_usuarios_en_el_chat_public = []
 usuarios_bloqueados_del_chat_public = []
@@ -50,8 +52,8 @@ def quitar_usuario_lista_en_chat_public(name: str):
     contador = 0
     
     for i in lista_usuarios_en_el_chat_public:
-        print(i)
-        print(i['name'])
+        #print(i)
+        #print(i['name'])
         if i['name'] == name:
             lista_usuarios_en_el_chat_public.pop(contador)
             
@@ -109,7 +111,7 @@ def add_message(username, message, is_management_server: bool = False):
         if not is_management_server:
             actualizar_ultima_conexion_usuario(username=username)
 
-        new_message = {"timestamp": now, "from": username, "message":message}
+        new_message = {"id_message": len(messages)+1, "timestamp": now, "from": username, "message":message}
         
         messages.append(new_message)
         return new_message
@@ -124,16 +126,13 @@ def Index():
     try:
         username = session['username']
         user_password = session['user_password']
+        
+        
     except:
-        username = ''
-        user_password = ''
+        return redirect(url_for('clean_user'))
     
     quitar_usuario_lista_en_chat_public(username)
     
-    if not gestionar.es_el_usuario(nombre=username, clave=user_password):
-        session['username'] = ''
-        session['user_password'] = ''
-        session['remember_me'] = False
     
     session['go_chat'] = False
     
@@ -142,7 +141,8 @@ def Index():
         if session['remember_me']:
             return redirect(url_for('user_page'))
     except:
-        pass
+        session['remember_me'] = False
+
     
     if request.method == "POST":
         session["username"] = str(request.form["username"])
@@ -162,7 +162,7 @@ def Index():
             print("si es admin")
             username = session["username"]
             session["server_password"] = clave_super_secreta
-#            add_message("Gestión del servidor", "'" + session["username"] + "'" + " se ha unido")
+
             return redirect(url_for("user_page"))
         elif saber_si_se_parece_admin(username):
             flash(f"El nombre '{username}' está reservado para el administrador.")
@@ -172,9 +172,9 @@ def Index():
             flash("El usuario '" + request.form["username"] + "' no existe")
         elif request.form["server_password"] == clave_super_secreta and username.replace(" ", "") != "":
             if gestionar.es_el_usuario(nombre=username, clave=user_password):
-                session["user_password"] = request.form["user_password"]
-                session["server_password"] = request.form["server_password"]
-#                add_message("Gestión del servidor", "'" + session["username"] + "'" + " se ha unido")
+                session["user_password"] = user_password
+                session["server_password"] = clave_super_secreta
+
                 return redirect(url_for("user_page"))
             else:
                 session["username"] = ""
@@ -183,13 +183,12 @@ def Index():
                 flash("Esa no es la contraseña del usuario.")
         elif request.form["server_password"] != clave_super_secreta:
             flash("Esa no es la clave super secreta.")
-            
+        else:
+            flash('Hubo un error :/')
+            return redirect(url_for('clean_user'))
         
-#    if "username" in session and "clave_super_secreta" in session:
-#        add_message("Gestión del servidor", "'" + session["username"] + "'" + " se ha unido")
-#        return redirect(url_for("user", username=session["username"]))
     
-    return render_template("login.html") # 'index.html' now replaces message
+    return render_template("login.html")
 
 @app.route('/register', methods = ["GET", "POST"])
 def register():
@@ -207,6 +206,11 @@ def register():
         ultima_conexion = get_time_now()
         
         try:
+            server_password = request.form["server_password"]
+        except:
+            server_password = ""
+        
+        try:
             if request.form["remember"] == 'on':
                 session['remember_me'] = True
         except:
@@ -215,7 +219,9 @@ def register():
         
         gestionar = gs.Gestionar_usuarios("DATABASE")
         
-        if username.replace(" ", "") == "" or username.replace(" ", "") != request.form["username"]:
+        if username in lista_usuarios_en_el_chat_public:
+            flash('No debes registrarte dos veces con el mismo usuario...')
+        elif username.replace(" ", "") == "" or username.replace(" ", "") != username:
             flash("El nombre debe tener letras y no tener ningún espacio")
         elif user_password == "":
             flash("Debes poner una contraseña para el usuario")
@@ -223,17 +229,21 @@ def register():
             flash("El nombre de usuario debe tener como máximo 10 caracteres")
         elif len(username) < 4:
             flash("El nombre debe tener como mínimo 4 caracteres")
+        elif not server_password == clave_super_secreta:
+            flash('Esa no es la contraseña de acceso al servidor...')
         elif saber_si_se_parece_admin(username):
-            flash("El nombre 'Alpha' está reservado para el administrador")
+            flash(f"El nombre '{username}' está reservado para el administrador")
         elif gestionar.existe_el_usuario(nombre=username):
             flash("El usuario '" + username + "' ya está registrado")
         else:
             gestionar.agregar_usuario(nombre=username, clave=user_password, primera_conexion=ultima_conexion, ultima_conexion=ultima_conexion)
+            lista_usuarios_registrados.append(username)
             
             if session['remember_me']:
                 session['username'] = username
                 session['user_password'] = user_password
                 flash('Bienvenido a La Red...')
+                return redirect(url_for('user_page'))
             else:
                 flash("Se agregó exitosamente el usuario!")
             
@@ -308,7 +318,6 @@ def logout():
         except:
             print(f'El usuario {username} no tenía contraseña en la sesión')
         
-        session['username'] = ''
         
         if username == "":
             print("el username está vacio")
@@ -319,7 +328,7 @@ def logout():
         elif not gestionar.es_el_usuario(nombre=username, clave=user_password):
             print('Intentaste ingresar con un nombre de usuario que no existe')
         
-        return redirect(url_for('Index'))
+        return redirect(url_for('clean_user'))
     except:
         print(session)
         print("hubo un error")
@@ -397,12 +406,12 @@ def chat_public():
     agregar_usuario_lista_en_chat_public(name= username, is_admin= es_admin)
     
     #quitar_usuario_lista_online_en_chat_public(username)
-    print(lista_usuarios_en_el_chat_public)
+    #print(lista_usuarios_en_el_chat_public)
     
     
     if request.method == "POST":
         add_message(username=username, message=message)
-        print(messages)
+        #print(messages)
         return redirect(url_for('chat_public'))
     
     
@@ -410,7 +419,7 @@ def chat_public():
 
 
 @app.route('/chat/public/delete')
-def delete_chat():
+def delete_chat_public():
     try:
         username = session["username"]
         user_password = session["user_password"]
@@ -433,8 +442,36 @@ def delete_chat():
     global messages
     messages = []
     
-    return redirect(url_for("chat_public", username=session["username"]))
+    return redirect(url_for("chat_public"))
 
+@app.route('/chat/public/delete/<int:id_message>')
+def delete_message_chat_public(id_message: int):
+    try:
+        username = session["username"]
+        user_password = session["user_password"]
+        
+        if not saber_si_es_admin(name= username, password= user_password):
+            if username == "":
+                print(f"ALGUIEN INTENTÓ BORRAR UN MENSAJE DEL CHAT PÚBLICO SIN INICIAR SESIÓN")
+                flash("¿Qué intentaste hacer? No iniciaste sesión, no sos administrador, e intentaste borrar el chat público...")
+                return redirect(url_for("Index"))
+            elif user_password == '':
+                print(F"EL USUARIO '{username}' INTENTÓ BORRAR EL CHAT PÚBLICO SIN UNA CONTRASEÑA")
+                flash(f"¿Qué intentaste hacer? No iniciaste sesión con contraseña, no sos administrador, e intentaste borrar el chat público...")
+            
+            print(f"UN USUARIO NORMAL INTENTÓ BORRAR EL CHAT PÚBLICO")
+            flash("¿Qué intentaste hacer? No sos administrador e intentaste borrar el chat público...")
+    except:
+        flash("¿Qué intentaste hacer? No iniciaste sesión, no sos administrador, e intentaste borrar el chat público...")
+        return redirect(url_for("Index"))
+    
+    contador = 0
+    for i in messages:
+        if i['id_message'] == id_message:
+            messages.pop(contador)
+        contador += 1
+    
+    return redirect(url_for("chat_public"))
 
 
 @app.route('/manage_users')
@@ -457,9 +494,54 @@ def manage_users():
     gestionar_usuarios = gs.Gestionar_usuarios("DATABASE")
     
     lista_usuarios = gestionar_usuarios.listar_usuarios()
-    lista_usuarios = gs.desencriptar_varios_arrays(lista_usuarios)
+    lista_usuarios = lista_usuarios
     
     return render_template("manage_users.html", users = lista_usuarios)
+
+@app.route('/manage_users/edit<int:id>')
+def edit_user(id: int):
+    try:
+        gestionar = gs.Gestionar_usuarios("DATABASE")
+        
+        username = session["username"]
+        user_password = session["user_password"]
+        
+        if not saber_si_es_admin(name = username, password = user_password):
+            if username == "":
+                flash("¿Qué intentaste hacer? No iniciaste sesión, no sos administrador, e intentaste administrar los usuarios de la base de datos...")
+            else:
+                flash("¿Qué intentaste hacer? No sos administrador e intentaste administrar los usuarios de la base de datos...")
+            
+            return redirect(url_for('clean_user'))
+    except:
+        flash("¿Qué intentaste hacer? No iniciaste sesión, no sos administrador, e intentaste administrar los usuarios de la base de datos...")
+        return redirect(url_for('clean_user'))
+    
+    
+    return render_template("edit_user.html", user= gestionar.listar_id_nombre_clave_por_id(id= id))
+    
+@app.route('/manage_users/edit<int:id>/update', methods= ["POST"])
+def update_user(id: int):
+    try:
+        gestionar = gs.Gestionar_usuarios("DATABASE")
+        
+        username = session["username"]
+        user_password = session["user_password"]
+        
+        if not saber_si_es_admin(name = username, password = user_password):
+            if username == "":
+                flash("¿Qué intentaste hacer? No iniciaste sesión, no sos administrador, e intentaste administrar los usuarios de la base de datos...")
+            else:
+                flash("¿Qué intentaste hacer? No sos administrador e intentaste administrar los usuarios de la base de datos...")
+            
+            return redirect(url_for('clean_user'))
+    except:
+        flash("¿Qué intentaste hacer? No iniciaste sesión, no sos administrador, e intentaste administrar los usuarios de la base de datos...")
+        return redirect(url_for('clean_user'))
+    
+    if request.method == "POST":
+        gestionar.actualizar_usuario(id= id, clave=request.form["password"])
+
 
 @app.route('/manage_users/delete<int:id>')
 def delete_user(id: int):
@@ -471,13 +553,13 @@ def delete_user(id: int):
         
         if not saber_si_es_admin(name = username, password = user_password):
             if username == "":
-                flash("¿Qué intentaste hacer? No iniciaste sesión, no sos administrador, e intentaste administrar los usuarios desde la base de datos...")
+                flash("¿Qué intentaste hacer? No iniciaste sesión, no sos administrador, e intentaste administrar los usuarios de la base de datos...")
             else:
-                flash("¿Qué intentaste hacer? No sos administrador e intentaste administrar los usuarios desde la base de datos...")
+                flash("¿Qué intentaste hacer? No sos administrador e intentaste administrar los usuarios de la base de datos...")
             
             return redirect(url_for('clean_user'))
     except:
-        flash("¿Qué intentaste hacer? No iniciaste sesión, no sos administrador, e intentaste borrar el chat público...")
+        flash("¿Qué intentaste hacer? No iniciaste sesión, no sos administrador, e intentaste administrar los usuarios de la base de datos...")
         return redirect(url_for('clean_user'))
     
     gestionar_usuarios.eliminar_usuario(id= id)

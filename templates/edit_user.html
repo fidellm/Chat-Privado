@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+
+    <button onclick="borrar_todo()">Borrar toda la página</button>
+
+
+    <form action="/manage_users/edit{{ user.0 }}/update" method="post">
+
+        <label translate="no" for="id">Id = {{ user.0 }}</label>
+        <br>
+
+        <label translate="no">Nombre: {{ user.1 }}</label>
+        <br>
+
+        <label for="password">Contraseña:</label>
+        <br>
+        
+        <input type="text" translate="no" value="{{ user.2 }}">
+        <br>
+
+        <button type="submit">Actualizar usuario</button>
+
+    </form>
+
+    <script>
+
+        function borrar_todo() {
+            document.write("")
+        }
+
+    </script>
+    
+</body>
+</html>
