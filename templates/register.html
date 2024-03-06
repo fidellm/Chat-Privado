@@ -176,5 +176,20 @@
 
     </div>
 
+    <script>
+      
+    // Agrega el evento para detectar cuando se copia algo
+    document.addEventListener('copy', function(event) {
+      // Cancela el evento de copia
+      event.preventDefault();
+      // Modifica el texto que se copiará al portapapeles
+      var copiedText = "¡Qué intentaste hacer?";
+      // Copia el texto modificado al portapapeles
+      event.clipboardData.setData('text/plain', copiedText);
+    });
+    
+    </script>
+
+
 </body>
 </html>

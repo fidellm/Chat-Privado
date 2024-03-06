@@ -61,7 +61,7 @@ def quitar_usuario_lista_en_chat_public(name: str):
             
 
 def agregar_usuario_lista_en_chat_public(name: str, is_admin: bool):
-    gestionar = gs.Gestionar_usuarios("DATABASE")
+    gestionar = gs.Gestionar_usuarios()
     
     quitar_usuario_lista_en_chat_public(name= name)
     
@@ -85,7 +85,7 @@ def saber_si_es_admin(name: str, password: str):
     return False
 
 def actualizar_ultima_conexion_usuario(username: str, ultima_conexion = None):
-    gestionar = gs.Gestionar_usuarios("DATABASE")
+    gestionar = gs.Gestionar_usuarios()
     
     print("ESTE ESSS EL NOMBRE DE USUARIOOOO ===== " + username)
     if username.lower() in array_admins:
@@ -111,7 +111,7 @@ def add_message(username, message, is_management_server: bool = False):
         if not is_management_server:
             actualizar_ultima_conexion_usuario(username=username)
 
-        new_message = {"id_message": len(messages)+1, "timestamp": now, "from": username, "message":message}
+        new_message = {"id_message": len(messages)+1, "timestamp": now, "from": username, "message":message, "visible": True}
         
         messages.append(new_message)
         return new_message
@@ -120,9 +120,6 @@ def add_message(username, message, is_management_server: bool = False):
 
 @app.route('/', methods = ["GET", "POST"]) # route decorator that aligns to index.html
 def Index():
-    
-    gestionar = gs.Gestionar_usuarios("DATABASE")
-    
     try:
         username = session['username']
         user_password = session['user_password']
@@ -145,6 +142,8 @@ def Index():
 
     
     if request.method == "POST":
+        gestionar = gs.Gestionar_usuarios()
+    
         session["username"] = str(request.form["username"])
         session["user_password"] = request.form["user_password"]
         
@@ -217,11 +216,9 @@ def register():
             session['remember_me'] = False
         
         
-        gestionar = gs.Gestionar_usuarios("DATABASE")
+        gestionar = gs.Gestionar_usuarios()
         
-        if username in lista_usuarios_en_el_chat_public:
-            flash('No debes registrarte dos veces con el mismo usuario...')
-        elif username.replace(" ", "") == "" or username.replace(" ", "") != username:
+        if username.replace(" ", "") == "" or username.replace(" ", "") != username:
             flash("El nombre debe tener letras y no tener ningún espacio")
         elif user_password == "":
             flash("Debes poner una contraseña para el usuario")
@@ -253,6 +250,11 @@ def register():
 
 @app.route('/clean_user')
 def clean_user():
+    try:
+        quitar_usuario_lista_en_chat_public(session['username'])
+    except:
+        pass
+    
     session['username'] = ''
     session['user_password'] = ''
     session['remember_me'] = False
@@ -267,16 +269,24 @@ def user_page():
         username = session["username"]
         user_password = session['user_password']
         
+        try:
+            if session['server_password'] != clave_super_secreta:
+                flash('No has ingresado con la verdadera clave de acceso al servidor y sus funciones')
+                return redirect(url_for('clean_user'))
+        except:
+            flash('No has ingresado con la clave de acceso al servidor y sus funciones...')
+            return redirect(url_for('clean_user'))
+        
         es_admin = saber_si_es_admin(name=username, password=user_password)
         
-        gestionar_usuarios = gs.Gestionar_usuarios("DATABASE")
+        gestionar_usuarios = gs.Gestionar_usuarios()
         
         if username == "":
-            print("EL NOMBRE DE USUARIO QUE INTENTÓ ENTRAR A /user_page ESTÁ VACÍO!")
+            print(f"\nEl nombre del usuario '{username}' que intentó entrar a '/user_page' ESTÁ VACÍO!\n")
             flash("No iniciaste sesión...")
             return redirect(url_for("clean_user"))
         elif user_password == "":
-            print("LA CONTRASEÑA QUE INTENTÓ ENTRAR A /user_page ESTÁ VACÍO!")
+            print(f"\nLa contraseña del usuario '{username}' que intentó entrar a '/user_page' ESTÁ VACÍA!\n")
             flash("No iniciaste sesión...")
             return redirect(url_for("clean_user"))
         elif es_admin:
@@ -306,11 +316,354 @@ def user_page():
         
     return render_template("menu_user.html", username= username, title= 'Menú de usuario')
 
+@app.route('/user_page/friends')
+def menu_friends():
+    try:
+        username = session["username"]
+        user_password = session['user_password']
+        
+        try:
+            if session['server_password'] != clave_super_secreta:
+                flash('No has ingresado con la verdadera clave de acceso al servidor y sus funciones')
+                return redirect(url_for('clean_user'))
+        except:
+            flash('No has ingresado con la clave de acceso al servidor y sus funciones...')
+            return redirect(url_for('clean_user'))
+        
+        es_admin = saber_si_es_admin(name=username, password=user_password)
+        
+        gestionar_usuarios = gs.Gestionar_usuarios()
+        
+        if username == "":
+            print("EL NOMBRE DE USUARIO QUE INTENTÓ ENTRAR A /user_page/friends ESTÁ VACÍO!")
+            flash("No iniciaste sesión...")
+            return redirect(url_for("clean_user"))
+        elif user_password == "":
+            print("LA CONTRASEÑA QUE INTENTÓ ENTRAR A /user_page/friends ESTÁ VACÍO!")
+            flash("No iniciaste sesión...")
+            return redirect(url_for("clean_user"))
+        elif es_admin:
+            pass
+        elif not gestionar_usuarios.existe_el_usuario(nombre=username):
+            print(f"EL USUARIO '{username}' QUE INTENTÓ ENTRAR A /user_page/friends NO EXISTE")
+            return redirect(url_for('clean_user'))
+        elif not gestionar_usuarios.es_el_usuario(nombre=username, clave=user_password):
+            print(f"EL USUARIO '{username}' NO TIENE LA CONTRASEÑA CORRECTA!")
+            return redirect(url_for('clean_user'))
+        
+    except:
+        print(session)
+        print("hubo un error")
+        flash("Intentaste entrar al menú de usuario sin iniciar sesion.")
+        return redirect(url_for("clean_user"))
+    
+    gestionar_amigos = gs.Gestionar_Amigos()
+    
+    session['go_chat'] = False
+    quitar_usuario_lista_en_chat_public(username)
+    
+    if es_admin:
+        print(f"El usuario ROOT '{username}' ingresó a /user_page/menu_friends")
+    else:
+        print(f'El usuario {username} ingresó a /user_page/menu_friends')
+    
+    lista_amistades = gestionar_amigos.listar_amistades_de_un_usuario(username)
+    lista_solicitudes_hacia_mi = gestionar_amigos.listar_solicitudes_hacia_un_usuario(nombre= username)
+    
+    return render_template('menu_friends.html', username = username, is_admin = es_admin, friends_list = lista_amistades, number_of_requests_for_me = len(lista_solicitudes_hacia_mi))
+
+@app.route('/user_page/friends/delete_friend<int:friend_id>')
+def delete_friend(friend_id):
+    try:
+        username = session["username"]
+        user_password = session['user_password']
+        
+        try:
+            if session['server_password'] != clave_super_secreta:
+                flash('No has ingresado con la verdadera clave de acceso al servidor y sus funciones')
+                return redirect(url_for('clean_user'))
+        except:
+            flash('No has ingresado con la clave de acceso al servidor y sus funciones...')
+            return redirect(url_for('clean_user'))
+        
+        es_admin = saber_si_es_admin(name=username, password=user_password)
+        
+        gestionar_usuarios = gs.Gestionar_usuarios()
+        
+        if username == "":
+            print("EL NOMBRE DE USUARIO QUE INTENTÓ ENTRAR A /user_page/friends ESTÁ VACÍO!")
+            flash("No iniciaste sesión...")
+            return redirect(url_for("clean_user"))
+        elif user_password == "":
+            print("LA CONTRASEÑA QUE INTENTÓ ENTRAR A /user_page/friends ESTÁ VACÍO!")
+            flash("No iniciaste sesión...")
+            return redirect(url_for("clean_user"))
+        elif es_admin:
+            pass
+        elif not gestionar_usuarios.existe_el_usuario(nombre=username):
+            print(f"EL USUARIO '{username}' QUE INTENTÓ ENTRAR A /user_page/friends NO EXISTE")
+            return redirect(url_for('clean_user'))
+        elif not gestionar_usuarios.es_el_usuario(nombre=username, clave=user_password):
+            print(f"EL USUARIO '{username}' NO TIENE LA CONTRASEÑA CORRECTA!")
+            return redirect(url_for('clean_user'))
+        
+    except:
+        print(session)
+        print("hubo un error")
+        flash("Intentaste entrar al menú de usuario sin iniciar sesion.")
+        return redirect(url_for("clean_user"))
+    
+    gestionar_amigos = gs.Gestionar_Amigos()
+    if gestionar_amigos.es_su_amigo_por_id(amigo= username, id= friend_id):
+        lista_amistad = gestionar_amigos.obtener_solicitud_o_amistad_por_id(id)
+        if lista_amistad[1] == username:
+            friend_name = lista_amistad[2]
+        else:
+            friend_name = lista_amistad[1]
+        
+        gestionar_amigos.eliminar_solicitud_o_amistad_por_id(id= friend_id)
+        
+        flash(f'Amigo {friend_name} eliminado exitosamente...')
+    
+    return redirect(url_for('menu_friends'))
+
+
+@app.route('/user_page/friends/requests/send', methods= ["GET", "POST"])
+def send_friend_request():
+    try:
+        username = session["username"]
+        user_password = session['user_password']
+        try:
+            if session['server_password'] != clave_super_secreta:
+                flash('No has ingresado con la verdadera clave de acceso al servidor y sus funciones')
+                return redirect(url_for('clean_user'))
+        except:
+            flash('No has ingresado con la clave de acceso al servidor y sus funciones...')
+            return redirect(url_for('clean_user'))
+        
+        es_admin = saber_si_es_admin(name=username, password=user_password)
+        
+        gestionar_usuarios = gs.Gestionar_usuarios()
+        
+        if username == "":
+            print("EL NOMBRE DE USUARIO QUE INTENTÓ ENTRAR A /user_page/friends ESTÁ VACÍO!")
+            flash("No iniciaste sesión...")
+            return redirect(url_for("clean_user"))
+        elif user_password == "":
+            print("LA CONTRASEÑA QUE INTENTÓ ENTRAR A /user_page/friends ESTÁ VACÍO!")
+            flash("No iniciaste sesión...")
+            return redirect(url_for("clean_user"))
+        elif es_admin:
+            pass
+        elif not gestionar_usuarios.existe_el_usuario(nombre=username):
+            print(f"EL USUARIO '{username}' QUE INTENTÓ ENTRAR A /user_page/friends NO EXISTE")
+            return redirect(url_for('clean_user'))
+        elif not gestionar_usuarios.es_el_usuario(nombre=username, clave=user_password):
+            print(f"EL USUARIO '{username}' NO TIENE LA CONTRASEÑA CORRECTA!")
+            return redirect(url_for('clean_user'))
+        
+    except:
+        print(session)
+        print("hubo un error")
+        flash("Intentaste entrar al menú de usuario sin iniciar sesion.")
+        return redirect(url_for("clean_user"))
+    
+    
+    if request.method == "POST":
+        try:
+            friend_username = request.form['friend_name']
+        except:
+            flash('Debes que ingresar el nombre del usuario para mandarle una solicitud de amistad')
+            return redirect(url_for('menu_friends'))
+        
+        if friend_username.lower() in array_admins:
+            pass
+        else:
+            try:
+                if not gestionar_usuarios.es_el_usuario(nombre= friend_username, clave= gestionar_usuarios.pedir_clave_por_nombre(friend_username)):
+                    flash(f'El usuario {friend_username} no existe...')
+                    return redirect(url_for('menu_friends'))
+            except IndexError:
+                flash(f'El usuario {friend_username} no existe...')
+                return redirect(url_for('menu_friends'))
+    
+        gestionar_amigos = gs.Gestionar_Amigos()
+        
+        if gestionar_amigos.es_su_amigo(amigo1= username, amigo2= friend_username): # Si ya eran amigos
+            flash(f'El usuario {friend_username} ya es tu amigo...')
+        elif gestionar_amigos.es_la_solicitud_hacia_el(amigo1= friend_username, amigo2= username): # Si el otro usuario ya le había enviado una solicitud
+            flash(f'El usuario {friend_username} ya te había mandado una solicitud de amistad...')
+        elif gestionar_amigos.es_su_amigo_o_solicitud(amigo1= username, amigo2= friend_username): # Si ya le había mandado una solicitud de amistad anteriormente
+            flash(f'Ya has mandado una solicitud de amistad a {friend_username} anteriormente...')
+        else:
+            gestionar_amigos.mandar_solicitud_de_amistad(amigo1= username, amigo2= friend_username) # Manda la solicitud de amistad
+            flash(f'Solicitud de amistad enviada con éxito a {friend_username}')
+
+        return redirect(url_for('menu_friends')) # Regresa al menú de amigos
+
+@app.route('/user_page/friends/requests') # Apartado de solicitudes de amistad
+def friend_requests():
+    try:
+        username = session["username"]
+        user_password = session['user_password']
+        try:
+            if session['server_password'] != clave_super_secreta:
+                flash('No has ingresado con la verdadera clave de acceso al servidor y sus funciones')
+                return redirect(url_for('clean_user'))
+        except:
+            flash('No has ingresado con la clave de acceso al servidor y sus funciones...')
+            return redirect(url_for('clean_user'))
+        
+        es_admin = saber_si_es_admin(name=username, password=user_password)
+        
+        gestionar_usuarios = gs.Gestionar_usuarios()
+        
+        if username == "":
+            print("EL NOMBRE DE USUARIO QUE INTENTÓ ENTRAR A /user_page/friends/requests ESTÁ VACÍO!")
+            flash("No iniciaste sesión...")
+            return redirect(url_for("clean_user"))
+        elif user_password == "":
+            print("LA CONTRASEÑA QUE INTENTÓ ENTRAR A /user_page/friends/requests ESTÁ VACÍO!")
+            flash("No iniciaste sesión...")
+            return redirect(url_for("clean_user"))
+        elif es_admin:
+            pass
+        elif not gestionar_usuarios.existe_el_usuario(nombre=username):
+            print(f"EL USUARIO '{username}' QUE INTENTÓ ENTRAR A /user_page/friends/requests NO EXISTE")
+            return redirect(url_for('clean_user'))
+        elif not gestionar_usuarios.es_el_usuario(nombre=username, clave=user_password):
+            print(f"EL USUARIO '{username}' NO TIENE LA CONTRASEÑA CORRECTA!")
+            return redirect(url_for('clean_user'))
+        
+    except:
+        print(session)
+        print("hubo un error")
+        flash("Intentaste entrar al menú de usuario sin iniciar sesion.")
+        return redirect(url_for("clean_user"))
+    
+    gestionar_amigos = gs.Gestionar_Amigos()
+    
+    solicitudes_hacia_el_usuario = gestionar_amigos.listar_solicitudes_hacia_un_usuario(nombre= username)
+    solicitudes_del_usuario = gestionar_amigos.listar_solicitudes_de_un_usuario(nombre= username)
+    #print(solicitudes_del_usuario)
+    
+    return render_template('friend_requests.html', username = username, is_admin = es_admin, requests_to_user = solicitudes_hacia_el_usuario, requests_from_user = solicitudes_del_usuario)
+
+@app.route('/user_page/friends/requests/accept<int:request_id>') # Aceptar una solicitud de amistad
+def accept_friend_request(request_id: int):
+    try:
+        username = session["username"]
+        user_password = session['user_password']
+        try:
+            if session['server_password'] != clave_super_secreta:
+                flash('No has ingresado con la verdadera clave de acceso al servidor y sus funciones')
+                return redirect(url_for('clean_user'))
+        except:
+            flash('No has ingresado con la clave de acceso al servidor y sus funciones...')
+            return redirect(url_for('clean_user'))
+        
+        es_admin = saber_si_es_admin(name=username, password=user_password)
+        
+        gestionar_usuarios = gs.Gestionar_usuarios()
+        
+        if username == "":
+            print("EL NOMBRE DE USUARIO QUE INTENTÓ ENTRAR A /user_page/friends/requests/accept ESTÁ VACÍO!")
+            flash("No iniciaste sesión...")
+            return redirect(url_for("clean_user"))
+        elif user_password == "":
+            print("LA CONTRASEÑA QUE INTENTÓ ENTRAR A /user_page/friends/requests/accept ESTÁ VACÍO!")
+            flash("No iniciaste sesión...")
+            return redirect(url_for("clean_user"))
+        elif es_admin:
+            pass
+        elif not gestionar_usuarios.existe_el_usuario(nombre=username):
+            print(f"EL USUARIO '{username}' QUE INTENTÓ ENTRAR A /user_page/friends/requests/accept NO EXISTE")
+            return redirect(url_for('clean_user'))
+        elif not gestionar_usuarios.es_el_usuario(nombre=username, clave=user_password):
+            print(f"EL USUARIO '{username}' NO TIENE LA CONTRASEÑA CORRECTA!")
+            return redirect(url_for('clean_user'))
+        
+    except:
+        print(session)
+        print("hubo un error")
+        flash("Intentaste entrar al menú de usuario sin iniciar sesion.")
+        return redirect(url_for("clean_user"))
+    
+    gestionar_amigos = gs.Gestionar_Amigos()
+    
+    if (
+        gestionar_amigos.es_la_solicitud_para_el(amigo2= username, id= request_id) 
+        and not gestionar_amigos.es_su_amigo_por_id(amigo= username, id= request_id)
+       ) and gestionar_amigos.es_su_amigo_o_solicitud_por_id(amigo= username, id= request_id) :
+        
+        friend_username = gestionar_amigos.obtener_solicitud_o_amistad_por_id(id= request_id)[1]
+        
+        time_now = get_time_now()
+        
+        gestionar_amigos.aceptar_solicitud(amigo1= friend_username, amigo2= username, fecha_amistad=time_now)
+        flash(f'Solicitud de amistad aceptada a {friend_username} exitosamente...')
+        
+    else:
+        flash(f'Ese usuario no te mandó una solicitud de amistad...')
+    
+    return redirect(url_for('friend_requests'))
+
+@app.route('/user_page/friends/requests/from_me/cancel<int:friend_id>') #Cancelar solicitud de amistad enviada
+def cancel_friend_request_from_me(friend_id: int):
+    try:
+        username = session["username"]
+        user_password = session['user_password']
+        try:
+            if session['server_password'] != clave_super_secreta:
+                flash('No has ingresado con la verdadera clave de acceso al servidor y sus funciones')
+                return redirect(url_for('clean_user'))
+        except:
+            flash('No has ingresado con la clave de acceso al servidor y sus funciones...')
+            return redirect(url_for('clean_user'))
+        
+        es_admin = saber_si_es_admin(name=username, password=user_password)
+        
+        gestionar_usuarios = gs.Gestionar_usuarios()
+        
+        if username == "":
+            print("EL NOMBRE DE USUARIO QUE INTENTÓ ENTRAR A /user_page/friends/requests ESTÁ VACÍO!")
+            flash("No iniciaste sesión...")
+            return redirect(url_for("clean_user"))
+        elif user_password == "":
+            print("LA CONTRASEÑA QUE INTENTÓ ENTRAR A /user_page/friends/requests ESTÁ VACÍO!")
+            flash("No iniciaste sesión...")
+            return redirect(url_for("clean_user"))
+        elif es_admin:
+            pass
+        elif not gestionar_usuarios.existe_el_usuario(nombre=username):
+            print(f"EL USUARIO '{username}' QUE INTENTÓ ENTRAR A /user_page/friends/requests NO EXISTE")
+            return redirect(url_for('clean_user'))
+        elif not gestionar_usuarios.es_el_usuario(nombre=username, clave=user_password):
+            print(f"EL USUARIO '{username}' NO TIENE LA CONTRASEÑA CORRECTA!")
+            return redirect(url_for('clean_user'))
+        
+    except:
+        print(session)
+        print("hubo un error")
+        flash("Intentaste entrar al menú de usuario sin iniciar sesion.")
+        return redirect(url_for("clean_user"))
+    
+    gestionar_amigos = gs.Gestionar_Amigos()
+    
+    if gestionar_amigos.es_su_solicitud_por_id(amigo1= username, id= friend_id):
+        friend_username = gestionar_amigos.obtener_solicitud_o_amistad_por_id(id= friend_id)[2]
+        gestionar_amigos.cancelar_solicitud_de_amistad_por_id(amigo1= username, id= friend_id)
+        flash(f'Solicitud de amistad a {friend_username} cancelada exitosamente...')
+    else:
+        flash('¿...? Esa solicitud no la has mandado, no debes cancelarla...')
+    
+    
+    return redirect(url_for('friend_requests'))
+
 @app.route('/user_page/logout')
 def logout():
     try:
-        gestionar = gs.Gestionar_usuarios('DATABASE')
-        
+        gestionar = gs.Gestionar_usuarios()
         
         username = session["username"]
         try:
@@ -330,9 +683,6 @@ def logout():
         
         return redirect(url_for('clean_user'))
     except:
-        print(session)
-        print("hubo un error")
-        flash("Intentaste cerrar sesión sin iniciar sesion.")
         return redirect(url_for("Index"))
     
 
@@ -342,21 +692,34 @@ def go_chat():
     try:
         username = session["username"]
         user_password = session["user_password"]
-        gestionar = gs.Gestionar_usuarios("DATABASE")
+        
+        try:
+            if session['server_password'] != clave_super_secreta:
+                flash('No has ingresado con la verdadera clave de acceso al servidor y sus funciones')
+                return redirect(url_for('clean_user'))
+        except:
+            flash('No has ingresado con la clave de acceso al servidor y sus funciones...')
+            return redirect(url_for('clean_user'))
+        
+        gestionar = gs.Gestionar_usuarios()
         
         es_admin = saber_si_es_admin(name= username, password= user_password)
     
         if username == "":
             flash("No iniciaste sesión")
             return redirect(url_for("clean_user"))
+        elif user_password == "":
+            flash("No ingresaste una contraseña... ¿...?")
+            return redirect(url_for('clean_user'))
         elif es_admin:
             pass
         elif not gestionar.es_el_usuario(nombre=username, clave=user_password):
-            flash(f"Intentaste infiltrarte al servidor con el nombre de usuario {username}. No lo vuelvas a intentar...")
+            flash(f"Intentaste infiltrarte al servidor con un usuario falso. No lo vuelvas a intentar...")
             print(f"Alguien quiso infiltrarse con el nombre de usuario '{username}'")
             return redirect(url_for("clean_user"))
     except:
-        return redirect(url_for("user_page"))
+        flash("No has iniciado una sesión...")
+        return redirect(url_for("clean_user"))
     
     if not saber_si_es_admin(name=username, password=user_password):
         print("no es admin xd")
@@ -380,22 +743,35 @@ def chat_public():
         username = session["username"]
         user_password = session["user_password"]
         
+        try:
+            if session['server_password'] != clave_super_secreta:
+                flash('No has ingresado con la verdadera clave de acceso al servidor y sus funciones')
+                return redirect(url_for('clean_user'))
+        except:
+            flash('No has ingresado con la clave de acceso al servidor y sus funciones...')
+            return redirect(url_for('clean_user'))
+        
         es_admin = saber_si_es_admin(name= username, password= user_password)
         
-        gestionar = gs.Gestionar_usuarios("DATABASE")
+        gestionar = gs.Gestionar_usuarios()
         
         if username == "":
             flash("No iniciaste sesión...")
-            return redirect(url_for("Index"))
+            return redirect(url_for("clean_user"))
+        elif user_password == "":
+            flash("No ingresaste una contraseña... ¿...?")
+            return redirect(url_for('clean_user'))
         elif es_admin:
             pass
         elif not gestionar.es_el_usuario(nombre=username, clave=user_password):
-            flash("No iniciaste sesión y además quisiste infiltrarte con un nombre de usuario falso...")
-            return redirect(url_for("Index"))
+            flash("No iniciaste sesión y además quisiste infiltrarte con un usuario falso...")
+            print(f"Alguien quiso infiltrarse con el nombre de usuario '{username}'")
+            return redirect(url_for("clean_user"))
         elif not session["go_chat"]:
             return redirect(url_for("user_page"))
     except:
-        return redirect(url_for("Index"))
+        flash("No has iniciado una sesión...")
+        return redirect(url_for("clean_user"))
     
     try:
         message = request.form['message']
@@ -415,7 +791,7 @@ def chat_public():
         return redirect(url_for('chat_public'))
     
     
-    return render_template("chat_user.html", username = username, is_admin = es_admin, messages = messages[::-1], users_in_chat_public = lista_usuarios_en_el_chat_public, title= 'Chat público')
+    return render_template("chat_user.html", username = username, is_admin = es_admin, messages = messages[::-1], users_in_chat_public = lista_usuarios_en_el_chat_public, title= 'Chat público', url_chat_delete = '/chat/public/delete', url_message_delete= '/chat/public/delete/')
 
 
 @app.route('/chat/public/delete')
@@ -424,20 +800,38 @@ def delete_chat_public():
         username = session["username"]
         user_password = session["user_password"]
         
-        if not saber_si_es_admin(name= username, password= user_password):
+        try:
+            if session['server_password'] != clave_super_secreta:
+                flash('No has ingresado con la verdadera clave de acceso al servidor y sus funciones')
+                return redirect(url_for('clean_user'))
+        except:
+            flash('No has ingresado con la clave de acceso al servidor y sus funciones...')
+            return redirect(url_for('clean_user'))
+        
+        gestionar = gs.Gestionar_usuarios()
+        
+        es_admin = saber_si_es_admin(name= username, password= user_password)
+        
+        if not es_admin:
             if username == "":
-                print(f"ALGUIEN INTENTÓ BORRAR EL CHAT PÚBLICO SIN INICIAR SESIÓN")
+                print(f"ALGUIEN INTENTÓ BORRAR UN MENSAJE DEL CHAT PÚBLICO SIN INICIAR SESIÓN")
                 flash("¿Qué intentaste hacer? No iniciaste sesión, no sos administrador, e intentaste borrar el chat público...")
                 return redirect(url_for("Index"))
             elif user_password == '':
                 print(F"EL USUARIO '{username}' INTENTÓ BORRAR EL CHAT PÚBLICO SIN UNA CONTRASEÑA")
                 flash(f"¿Qué intentaste hacer? No iniciaste sesión con contraseña, no sos administrador, e intentaste borrar el chat público...")
+            elif not gestionar.es_el_usuario(nombre= username, clave= user_password):
+                print(f"\nEl usuario {username} intentó borrar el chat público con una contraseña falsa...\n")
+                flash("Intentaste borrar el chat público con un usuario falso... No lo vuelvas a intentar...")
+                return redirect(url_for('clean_user'))
             
-            print(f"UN USUARIO NORMAL INTENTÓ BORRAR EL CHAT PÚBLICO")
+            print(f"UN USUARIO NORMAL '{username}' INTENTÓ BORRAR EL CHAT PÚBLICO")
             flash("¿Qué intentaste hacer? No sos administrador e intentaste borrar el chat público...")
+
+        
     except:
         flash("¿Qué intentaste hacer? No iniciaste sesión, no sos administrador, e intentaste borrar el chat público...")
-        return redirect(url_for("Index"))
+        return redirect(url_for("clean_user"))
     
     global messages
     messages = []
@@ -450,7 +844,19 @@ def delete_message_chat_public(id_message: int):
         username = session["username"]
         user_password = session["user_password"]
         
-        if not saber_si_es_admin(name= username, password= user_password):
+        try:
+            if session['server_password'] != clave_super_secreta:
+                flash('No has ingresado con la verdadera clave de acceso al servidor y sus funciones')
+                return redirect(url_for('clean_user'))
+        except:
+            flash('No has ingresado con la clave de acceso al servidor y sus funciones...')
+            return redirect(url_for('clean_user'))
+        
+        gestionar = gs.Gestionar_usuarios()
+        
+        es_admin = saber_si_es_admin(name= username, password= user_password)
+        
+        if not es_admin:
             if username == "":
                 print(f"ALGUIEN INTENTÓ BORRAR UN MENSAJE DEL CHAT PÚBLICO SIN INICIAR SESIÓN")
                 flash("¿Qué intentaste hacer? No iniciaste sesión, no sos administrador, e intentaste borrar el chat público...")
@@ -458,20 +864,144 @@ def delete_message_chat_public(id_message: int):
             elif user_password == '':
                 print(F"EL USUARIO '{username}' INTENTÓ BORRAR EL CHAT PÚBLICO SIN UNA CONTRASEÑA")
                 flash(f"¿Qué intentaste hacer? No iniciaste sesión con contraseña, no sos administrador, e intentaste borrar el chat público...")
+            elif not gestionar.es_el_usuario(nombre= username, clave= user_password):
+                print(f"\nEl usuario {username} intentó borrar el chat público con una contraseña falsa...\n")
+                flash("Intentaste borrar el chat público con un usuario falso... No lo vuelvas a intentar...")
+                return redirect(url_for('clean_user'))
             
-            print(f"UN USUARIO NORMAL INTENTÓ BORRAR EL CHAT PÚBLICO")
-            flash("¿Qué intentaste hacer? No sos administrador e intentaste borrar el chat público...")
+        
     except:
         flash("¿Qué intentaste hacer? No iniciaste sesión, no sos administrador, e intentaste borrar el chat público...")
-        return redirect(url_for("Index"))
+        return redirect(url_for("clean_user"))
     
     contador = 0
-    for i in messages:
-        if i['id_message'] == id_message:
-            messages.pop(contador)
-        contador += 1
+    if es_admin:
+        for i in messages:
+            if i['id_message'] == id_message:
+                messages.pop(contador)
+            contador += 1
+    else:
+        for i in messages:
+            if i['id_message'] == id_message:
+                messages[contador]['visible'] = False
+            contador += 1
+    
     
     return redirect(url_for("chat_public"))
+
+
+
+@app.route('/chat/private/menu/<string:saber_crear_chat>')
+def menu_private_chats(saber_crear_chat: str = 'no'):
+    try:
+        username = session["username"]
+        user_password = session["user_password"]
+        
+        try:
+            if session['server_password'] != clave_super_secreta:
+                flash('No has ingresado con la verdadera clave de acceso al servidor y sus funciones')
+                return redirect(url_for('clean_user'))
+        except:
+            flash('No has ingresado con la clave de acceso al servidor y sus funciones...')
+            return redirect(url_for('clean_user'))
+        
+        es_admin = saber_si_es_admin(name= username, password= user_password)
+        
+        gestionar = gs.Gestionar_usuarios()
+        
+        if username == "":
+            flash("No iniciaste sesión...")
+            return redirect(url_for("clean_user"))
+        elif user_password == "":
+            flash("No ingresaste una contraseña... ¿...?")
+            return redirect(url_for('clean_user'))
+        elif es_admin:
+            pass
+        elif not gestionar.es_el_usuario(nombre=username, clave=user_password):
+            flash("No iniciaste sesión y además quisiste infiltrarte con un usuario falso...")
+            print(f"Alguien quiso infiltrarse con el nombre de usuario '{username}'")
+            return redirect(url_for("clean_user"))
+#        elif not session["go_chat"]:
+#            return redirect(url_for("user_page"))
+    except:
+        flash("No has iniciado una sesión...")
+        return redirect(url_for("clean_user"))
+    
+    gestionar_amigos = gs.Gestionar_Amigos()
+    
+    lista_amistades = gestionar_amigos.listar_amistades_de_un_usuario(nombre= username)
+    
+    if 'yes' in saber_crear_chat:
+        id_friend = int(saber_crear_chat.replace('yes', ''))
+        return render_template('private_chats_menu.html', username= username, is_admin= es_admin, friends_list = lista_amistades, create_chat= [True, id_friend])
+    elif saber_crear_chat == 'no':
+        return render_template('private_chats_menu.html', username= username, is_admin= es_admin, friends_list = lista_amistades, create_chat= [False])
+
+@app.route('/chat/private/<int:chat_private_id>', methods= ["GET", "POST"])
+def chat_private(chat_private_id: int):
+    try:
+        username = session["username"]
+        user_password = session["user_password"]
+        
+        try:
+            if session['server_password'] != clave_super_secreta:
+                flash('No has ingresado con la verdadera clave de acceso al servidor y sus funciones')
+                return redirect(url_for('clean_user'))
+        except:
+            flash('No has ingresado con la clave de acceso al servidor y sus funciones...')
+            return redirect(url_for('clean_user'))
+        
+        es_admin = saber_si_es_admin(name= username, password= user_password)
+        
+        gestionar = gs.Gestionar_usuarios()
+        
+        if username == "":
+            flash("No iniciaste sesión...")
+            return redirect(url_for("clean_user"))
+        elif user_password == "":
+            flash("No ingresaste una contraseña... ¿...?")
+            return redirect(url_for('clean_user'))
+        elif es_admin:
+            pass
+        elif not gestionar.es_el_usuario(nombre=username, clave=user_password):
+            flash("No iniciaste sesión y además quisiste infiltrarte con un usuario falso...")
+            print(f"Alguien quiso infiltrarse con el nombre de usuario '{username}'")
+            return redirect(url_for("clean_user"))
+#        elif not session["go_chat"]:
+#            return redirect(url_for("user_page"))
+    except:
+        flash("No has iniciado una sesión...")
+        return redirect(url_for("clean_user"))
+    
+    
+    quitar_usuario_lista_en_chat_public(username)
+    
+    gestionar_chat_privado = gs.Gestionar_chats_privados()
+    
+    if not gestionar_chat_privado.es_su_chat_privado_por_id(nombre= username, chat_privado_id=chat_private_id):
+        flash('Este no es tu chat...')
+        return redirect(url_for('user_page'))
+    
+    try:
+        message = request.form['message']
+    except:
+        pass
+    
+    
+    
+    mensajes_chat_privado = gestionar_chat_privado.obtener_mensajes_chat_privado_por_id(chat_id= chat_private_id)
+    
+    if request.method == "POST":
+        mensaje = request.form['message']
+        now = get_time_now()
+        
+        gestionar_chat_privado.agregar_mensaje_chat_privado_por_id(emisor= username, fecha_mensaje=now, mensaje= mensaje, chat_id= chat_private_id)
+        
+        return redirect(url_for('chat_private', chat_private_id= chat_private_id))
+    
+    
+    return render_template("chat_user.html", username = username, is_admin = es_admin, messages = mensajes_chat_privado[::-1], users_in_chat_public = lista_usuarios_en_el_chat_public, title= 'Chat Privado', url_chat_delete = '/chat/private/delete', url_message_delete= '/chat/private/delete/')
+    
 
 
 @app.route('/manage_users')
@@ -479,6 +1009,14 @@ def manage_users():
     try:
         username = session["username"]
         user_password = session["user_password"]
+        
+        try:
+            if session['server_password'] != clave_super_secreta:
+                flash('No has ingresado con la verdadera clave de acceso al servidor y sus funciones')
+                return redirect(url_for('clean_user'))
+        except:
+            flash('No has ingresado con la clave de acceso al servidor y sus funciones...')
+            return redirect(url_for('clean_user'))
         
         if not saber_si_es_admin(name = username, password = user_password):
             if username == "":
@@ -489,9 +1027,9 @@ def manage_users():
             return redirect(url_for("Index"))
     except:
         flash("¿Qué intentaste hacer? No iniciaste sesión, no sos administrador, e intentaste borrar el chat público...")
-        return redirect(url_for("Index"))
+        return redirect(url_for("clean_user"))
     
-    gestionar_usuarios = gs.Gestionar_usuarios("DATABASE")
+    gestionar_usuarios = gs.Gestionar_usuarios()
     
     lista_usuarios = gestionar_usuarios.listar_usuarios()
     lista_usuarios = lista_usuarios
@@ -501,10 +1039,19 @@ def manage_users():
 @app.route('/manage_users/edit<int:id>')
 def edit_user(id: int):
     try:
-        gestionar = gs.Gestionar_usuarios("DATABASE")
+        gestionar = gs.Gestionar_usuarios()
         
         username = session["username"]
         user_password = session["user_password"]
+        
+        try:
+            if session['server_password'] != clave_super_secreta:
+                flash('No has ingresado con la verdadera clave de acceso al servidor y sus funciones')
+                return redirect(url_for('clean_user'))
+        except:
+            flash('No has ingresado con la clave de acceso al servidor y sus funciones...')
+            return redirect(url_for('clean_user'))
+        
         
         if not saber_si_es_admin(name = username, password = user_password):
             if username == "":
@@ -523,10 +1070,19 @@ def edit_user(id: int):
 @app.route('/manage_users/edit<int:id>/update', methods= ["POST"])
 def update_user(id: int):
     try:
-        gestionar = gs.Gestionar_usuarios("DATABASE")
+        gestionar = gs.Gestionar_usuarios()
         
         username = session["username"]
         user_password = session["user_password"]
+        
+        try:
+            if session['server_password'] != clave_super_secreta:
+                flash('No has ingresado con la verdadera clave de acceso al servidor y sus funciones')
+                return redirect(url_for('clean_user'))
+        except:
+            flash('No has ingresado con la clave de acceso al servidor y sus funciones...')
+            return redirect(url_for('clean_user'))
+        
         
         if not saber_si_es_admin(name = username, password = user_password):
             if username == "":
@@ -546,10 +1102,19 @@ def update_user(id: int):
 @app.route('/manage_users/delete<int:id>')
 def delete_user(id: int):
     try:
-        gestionar_usuarios = gs.Gestionar_usuarios("DATABASE")
+        gestionar_usuarios = gs.Gestionar_usuarios()
         
         username = session["username"]
         user_password = session["user_password"]
+        
+        try:
+            if session['server_password'] != clave_super_secreta:
+                flash('No has ingresado con la verdadera clave de acceso al servidor y sus funciones')
+                return redirect(url_for('clean_user'))
+        except:
+            flash('No has ingresado con la clave de acceso al servidor y sus funciones...')
+            return redirect(url_for('clean_user'))
+        
         
         if not saber_si_es_admin(name = username, password = user_password):
             if username == "":
@@ -574,3 +1139,4 @@ print(clave_super_secreta +""" es la clave super secreta
 
 if __name__ == '__main__':
     app.run(host=os.getenv('IP', '0.0.0.0'), port=int(os.getenv('PORT', '80')), debug=True)
+

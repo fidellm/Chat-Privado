@@ -28,6 +28,7 @@
     }
 
     h1 {
+      margin-top: 0px;
       padding: 0px;
       border-bottom-style: solid;
       border-bottom-color: #e00;
@@ -44,6 +45,12 @@
 
       max-height: 1000px;
 
+      border-radius: 7px;
+      border-style: solid;
+      border-color: rgba(255, 255, 255, 0.5);
+
+      box-shadow: 0 0 10px rgba(0, 0, 218, 0.7);
+
       margin: 0 auto;
       padding: 20px;
 
@@ -53,9 +60,8 @@
     
     
     .message-container {
-      margin-top: 1.7rem;
+      margin: 1rem auto;
       background-color: #000;
-      border: 1px solid #000;
 
       text-align: left;
 
@@ -64,8 +70,11 @@
       height: 300px;
       max-height: 80%;
 
-      border-radius: 5px;
-      padding: 20px;
+      border-radius: 6px;
+      border-style: solid;
+      border-color: rgba(255, 255, 255, 0.5);
+
+      padding: 16px;
       box-shadow: 0 0 10px rgba(218, 0, 0, 0.7);
 
       overflow-y: auto;
@@ -162,7 +171,7 @@
     
     .message-message {
       font-size: large;
-      color: aliceblue;
+      color: #f0f8ff;
       word-wrap: break-word; /* Agregado para permitir saltos de línea */
     }
 
@@ -177,7 +186,7 @@
 
       max-height: 1000px;
 
-      margin: 0;
+      margin: 0 auto;
 
       box-sizing: border-box;
 
@@ -220,8 +229,12 @@
       <button onclick="borrar_mensaje('{{ message.id_message }}')">borrar</button>
 
       {% else %}
+      {% if message.visible %}
       <p class="data-message"><span class="hora">{{ message.timestamp }}< </span> <span class="emisor">{{ message.from }}</span></p>
       <p class="message-message">{{ message.message }}</p>
+      
+      <button onclick="borrar_mensaje('{{ message.id_message }}')">borrar</button>
+      {% endif %}
       
       {% endif %}
 
@@ -236,7 +249,7 @@
 
     
     {% if is_admin %}
-    <form action="/chat/public/delete" method="get">
+    <form action="{{ url_chat_delete }}" method="get">
       <button type="submit">borrar chat</button>
     </form>
 
@@ -281,7 +294,7 @@
   <script>
 
     function borrar_mensaje(id_message) {
-      window.location.href = '/chat/public/delete/' + id_message;
+      window.location.href = '{{ url_message_delete }}' + id_message;
     }
     
     document.addEventListener("DOMContentLoaded", function () {

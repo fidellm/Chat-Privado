@@ -45,6 +45,8 @@ header h1 {
 }
 
 .menu {
+  display: none;
+
   list-style: none;
   padding: 0;
   margin-top: 15px;
@@ -124,9 +126,9 @@ main button:hover {
     <div class="menu-container">
       <input type="checkbox" id="menu-toggle">
       <label for="menu-toggle" class="menu-icon" style="color: aliceblue; background-color: #000;">&#9776;</label>
-      <ul class="menu hack-effect" style="border-color: #f00; background-color: #000;">
+      <ul class="menu" style="border-color: #f00; background-color: #000;">
         <li><button class="btn_menu">Configuración</button></li>
-        <li><button class="btn_menu">Amigos</button></li>
+        <li><button onclick="go_menu_friends()" class="btn_menu">Amigos</button></li>
         <li><button class="btn_menu">Otros</button></li>
         <li><button onclick="go_logout()" class="btn_menu">Cerrar Sesión</button></li>
       </ul>
@@ -134,7 +136,7 @@ main button:hover {
     <main>
 
       <button onclick="go_chat_public()" class="button-distort" style="background-color: #000; color: #00f;">Chat Público</button>
-      <button class="button-distort" style="background-color: #000; color: #00f;">Chat Privado</button>
+      <button onclick="go_menu_private_chats()" class="button-distort" style="background-color: #000; color: #00f;">Chat Privado</button>
     </main>
   </div>
   <script>
@@ -144,21 +146,42 @@ main button:hover {
   
     menuToggle.addEventListener("change", function () {
       if (menuToggle.checked) {
+        menu.style.display = 'block';
         menu.style.maxHeight = menu.scrollHeight + "px";
-        
+
       } else {
         menu.style.maxHeight = "0";
+        menu.style.display = "none";
       }
     });
   });
+
+  function go_menu_friends() {
+    window.location.href = '/user_page/friends'
+  }
+
 
   function go_chat_public() {
     window.location.href = '/chat/public/go'
   }
 
+  function go_menu_private_chats() {
+    window.location.href = '/chat/private/menu/no'
+  }
+
   function go_logout() {
     window.location.href = '/user_page/logout'
   }
+  
+    // Agrega el evento para detectar cuando se copia algo
+    document.addEventListener('copy', function(event) {
+      // Cancela el evento de copia
+      event.preventDefault();
+      // Modifica el texto que se copiará al portapapeles
+      var copiedText = "¡Qué intentaste hacer?";
+      // Copia el texto modificado al portapapeles
+      event.clipboardData.setData('text/plain', copiedText);
+    });
 
   </script>
 </body>

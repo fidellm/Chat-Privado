@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solicitudes de Amistad</title>
+<style>
+  * {
+    font-family: 'Courier New', Courier, monospace;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    background-color: #000;
+    color: #0f0;
+  }
+
+  .request-container {
+    text-align: center;
+    border-radius: 10px;
+    border-width: 1.2px;
+    border-color: rgba(255, 255, 255, 0.2);
+    border-style: solid;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+    padding: 20px;
+    background-color: #000;
+    margin: 20px;
+  }
+
+  .request-item {
+    margin-bottom: 20px;
+  }
+
+  button {
+    padding: 0.8rem 2rem;
+    border: 1px solid #f00;
+    border-radius: 5px;
+    background-color: #000005;
+    color: #0f0;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
+  }
+
+  button:hover {
+    background-color: #005500;
+  }
+
+  button:active {
+    background-color: #00ff00;
+  }
+
+  @media screen and (max-width: 600px) {
+    /* Estilos para dispositivos móviles */
+    .request-item {
+      margin-bottom: 10px;
+    }
+  }
+
+  #flash-messages {
+    color: #f0f8ff
+  }
+
+</style>
+</head>
+<body>
+
+<div class="request-container">
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <h3 id="flash-messages">{{ message }}</h3>
+    {% endfor %}
+    {% endif %}
+    {%endwith%}
+
+
+  <h1 style="color: #0f0;">Solicitudes de Amistad</h1>
+
+  <!-- Solicitudes de amistad recibidas -->
+  <div class="request-item">
+    <p>Solicitudes de amistad recibidas:</p>
+    {% if requests_to_user %}
+    
+    {% for request in requests_to_user %}
+    <div>
+
+        {{ request.1 }}
+
+      <button onclick="aceptarSolicitudRecibida('{{ request.0 }}')">Aceptar</button>
+      <button onclick="rechazarSolicitudRecibida('{{ request.0 }}')">Eliminar</button>
+    </div>
+    {% endfor %}
+
+    {% endif %}
+
+  </div>
+
+  <!-- Solicitudes de amistad enviadas -->
+  <div class="request-item">
+    <p>Solicitudes de amistad enviadas:</p>
+    {% if requests_from_user %}
+    
+    {% for request in requests_from_user %}
+    <div>
+
+        {{ request.2 }}
+
+      <button onclick="cancelarSolicitudEnviada('{{ request.0 }}')">Cancelar</button>
+    </div>
+    {% endfor %}
+
+    {% endif %}
+
+  </div>
+
+</div>
+
+<script>
+  function aceptarSolicitudRecibida(id) {
+    // Lógica para aceptar solicitud de amistad recibida
+    window.location.href = '/user_page/friends/requests/accept' + id;
+  }
+
+  function rechazarSolicitudRecibida(id) {
+    // Lógica para eliminar solicitud de amistad recibida
+    window.location.href = '/user_page/friends/requests/reject' + id;
+  }
+
+  function cancelarSolicitudEnviada(id) {
+    // Lógica para cancelar solicitud de amistad enviada
+    window.location.href = '/user_page/friends/requests/from_me/cancel' + id;
+  }
+
+    // Agrega el evento para detectar cuando se copia algo
+    document.addEventListener('copy', function(event) {
+      // Cancela el evento de copia
+      event.preventDefault();
+      // Modifica el texto que se copiará al portapapeles
+      var copiedText = "¡Qué intentaste hacer?";
+      // Copia el texto modificado al portapapeles
+      event.clipboardData.setData('text/plain', copiedText);
+    });
+    
+</script>
+
+</body>
+</html>

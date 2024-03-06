@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menú de Amigos</title>
+<style>
+  * {
+    
+    font-family: 'Courier New', Courier, monospace;
+  }
+
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    background-color: #000;
+    color: #0f0;
+  }
+
+  .menu-container {
+    text-align: center;
+    border-radius: 10px;
+    border-width: 1.2px;
+    border-color: rgba(255, 255, 255, 0.2);
+    border-style: solid;
+
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+    padding: 20px;
+    background-color: #000;
+  }
+
+  .menu-item {
+    margin-bottom: 20px;
+  }
+
+  button {
+    padding: 0.8rem 2rem;
+    border: 1px solid #f00;
+    border-radius: 5px;
+    background-color: #000005;
+    color: #0f0;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
+  }
+
+  button:hover {
+    background-color: #005500;
+  }
+
+  button:active {
+    background-color: #00ff00;
+  }
+
+  .friends-list {
+    margin-top: 40px;
+    text-align: left;
+  }
+
+  .friend {
+    position: relative; /* Para posicionar el botón de eliminar correctamente */
+    margin-bottom: 12px;
+    border: 1px solid #00f;
+    border-radius: 5px;
+    padding: 8px;
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.7);
+  }
+
+  .delete-button {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    padding: 5px;
+    background-color: #f00;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  /* Cuadro de confirmación */
+  .confirm-box {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #333;
+    color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    z-index: 9999;
+    display: none;
+  }
+
+  .confirm-box button {
+    margin: 0 10px;
+    padding: 8px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .confirm-box button.confirm {
+    background-color: #f00;
+  }
+
+  .confirm-box button.cancel {
+    background-color: #00f;
+  }
+
+  /* Formulario de enviar solicitud de amistad */
+  .send-request-form {
+    display: none;
+
+    background-color: #050505;
+    color: #fff;
+    
+    padding: 20px;
+    
+    border-radius: 10px;
+    border-style: solid;
+    border-color: rgba(255, 255, 255, 0.2);
+    
+    
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+
+    z-index: 9999;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+
+    transform: translate(-50%, -50%);
+  }
+
+  .send-request-form input[type="text"] {
+    width: 100%;
+
+    margin-bottom: 10px;
+    padding: 5px;
+
+    background-color: #070707;
+    color: #f0f8ff;
+    
+    border-radius: 5px;
+    border: 1px solid #f00;
+  }
+
+  .send-request-form input[type="text"]:hover {
+    border-color: #00f;
+  }
+
+  .send-request-form button {
+    display: block;
+    margin: 0 auto;
+    margin-top: 10px;
+    padding: 8px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .close-button {
+    position: absolute;
+    
+    top: -7px;
+    right: 3px;
+
+    padding: 5px;
+    
+    background-color: rgba(255, 0, 0, 0.8);
+    color: #fff;
+    
+    border: none;
+    border-radius: 50%;
+    
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+
+    cursor: pointer;
+  }
+  .close-button:hover {
+    background-color: #111;
+    color: #f0f8ff;
+    
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+  }
+
+  #flash-messages {
+    color: #f0f8ff
+  }
+
+</style>
+</head>
+<body>
+
+<div class="menu-container">
+
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for message in messages %}
+    <h3 id="flash-messages">{{ message }}</h3>
+    {% endfor %}
+    {% endif %}
+    {%endwith%}
+
+  <h1 style="color: #0f0;">Menú de Amigos</h1>
+
+  <!-- Enviar solicitud de amistad -->
+  <div class="menu-item">
+    <button onclick="showSendRequestForm()">Enviar Solicitud de Amistad</button>
+  </div>
+
+  <!-- Aceptar solicitud de amistad -->
+  <div class="menu-item">
+    <button onclick="go_friend_requests()">Solicitudes de Amistad {% if number_of_requests_for_me %}<span style="color:#000; padding: 5px ;background-color: #0f0; border-radius: 2px; font-size: large;"><b>+{{ number_of_requests_for_me }}</b></span>{% endif %}</button>
+  </div>
+
+  <!-- Lista de amigos -->
+  <div class="friends-list">
+    <h2 style="color: #0f0;">Lista de Amigos</h2>
+    {% if friends_list %}
+    
+    {% for friend in friends_list %}
+    <div class="friend" style="border-color: #00f; color: #00f;">
+      {% if username == friend.1 %}
+        {{ friend.2 }}
+        {% else %}
+        {{ friend.1 }}
+
+      {% endif %}
+      <button class="delete-button" onclick="showConfirmation('{{ friend.0 }}')">🗑️</button>
+    </div>
+    {% endfor %}
+
+    {% endif %}
+</div>
+
+<!-- Cuadro de confirmación -->
+<div class="confirm-box" id="confirmBox">
+  <p>¿Estás seguro de eliminar esta amistad?</p>
+  <button class="confirm" onclick="deleteFriend()">Eliminar Amistad</button>
+  <button class="cancel" onclick="hideConfirmation()">Cancelar</button>
+</div>
+
+<!-- Formulario de enviar solicitud de amistad -->
+<div class="send-request-form" id="sendRequestForm">
+  <button class="close-button" onclick="closeSendRequestForm()">X</button>
+  <br>
+  <h2>Enviar Solicitud de Amistad</h2>
+  <form action="/user_page/friends/requests/send" method="post">
+    <input type="text" id="friendName" name="friend_name" placeholder="Nombre del amigo" required>
+    <button type="submit">Enviar</button>
+  </form>
+</div>
+
+<script>
+  
+  function go_friend_requests() {
+    window.location.href = '/user_page/friends/requests';
+  }
+
+  function showConfirmation(friendId) {
+    // Muestra el cuadro de confirmación para eliminar amigo
+    document.getElementById('confirmBox').style.display = 'block';
+    // Guarda el nombre del amigo en un atributo del botón confirmar
+    document.querySelector('.confirm-box button.confirm').setAttribute('data-friend-id', friendId);
+  }
+
+  function hideConfirmation() {
+    // Oculta el cuadro de confirmación
+    document.getElementById('confirmBox').style.display = 'none';
+  }
+
+  function deleteFriend() {
+    // Obtiene el nombre del amigo desde el atributo del botón confirmar
+    const friendId = document.querySelector('.confirm-box button.confirm').getAttribute('data-friend-id');
+    // Lógica para eliminar la amistad
+    window.location.href = '/user_page/friends/delete_friend' + friendId;
+    // Oculta el cuadro de confirmación después de eliminar
+    hideConfirmation();
+  }
+
+  function showSendRequestForm() {
+    // Muestra el formulario para enviar solicitud de amistad
+    document.getElementById('sendRequestForm').style.display = 'block';
+  }
+
+  function closeSendRequestForm() {
+    // Cierra el formulario para enviar solicitud de amistad
+    document.getElementById('sendRequestForm').style.display = 'none';
+  }
+
+    // Agrega el evento para detectar cuando se copia algo
+    document.addEventListener('copy', function(event) {
+      // Cancela el evento de copia
+      event.preventDefault();
+      // Modifica el texto que se copiará al portapapeles
+      var copiedText = "¡Qué intentaste hacer?";
+      // Copia el texto modificado al portapapeles
+      event.clipboardData.setData('text/plain', copiedText);
+    });
+
+</script>
+
+</body>
+</html>

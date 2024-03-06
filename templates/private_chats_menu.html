@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Menú de Chats Privados</title>
+
+</head>
+<body>
+
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          background-color: #0f0f0f;
+          color: #ffffff;
+          margin: 0;
+          padding: 0;
+        }
+      
+        .container {
+          max-width: 800px;
+          margin: 20px auto;
+          padding: 20px;
+          background-color: #1f1f1f;
+          border-radius: 10px;
+          box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+      
+        h1 {
+          text-align: center;
+          margin-bottom: 20px;
+        }
+      
+        .friends-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+      
+        .friend {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 10px;
+          border-bottom: 1px solid #333333;
+        }
+      
+        .friend-name {
+          margin: 0;
+        }
+      
+        .button-container {
+          display: flex;
+          gap: 10px;
+        }
+      
+        .button {
+          padding: 8px 20px;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          transition: background-color 0.3s;
+        }
+      
+        .create-chat-button {
+          background-color: #007bff;
+          color: #ffffff;
+        }
+      
+        .go-to-chat-button {
+          background-color: #28a745;
+          color: #ffffff;
+        }
+      
+        .button:hover {
+          background-color: #0056b3;
+        }
+      
+        /* Estilos de la ventana modal */
+        .modal {
+        
+        {% if create_chat.0 %}
+            display: flex;
+        {% else %}
+            display: none;
+
+        {% endif %}
+        
+        }
+
+        .modal {
+
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.5);
+          z-index: 999;
+          justify-content: center;
+          align-items: center;
+        }
+      
+        .modal-content {
+          background-color: #1f1f1f;
+          padding: 20px;
+          border-radius: 10px;
+          box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+      
+        .modal-buttons {
+          display: flex;
+          justify-content: center;
+          margin-top: 20px;
+        }
+      
+        .modal-button {
+          padding: 8px 20px;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          transition: background-color 0.3s;
+        }
+      
+        .modal-create-chat-button {
+          background-color: #007bff;
+          color: #ffffff;
+        }
+      
+        .modal-cancel-button {
+          background-color: #dc3545;
+          color: #ffffff;
+        }
+      
+        .modal-button:hover {
+          background-color: #0056b3;
+        }
+      
+      </style>
+
+<div class="container">
+  <h1>Menú de Chats Privados</h1>
+
+  <ul class="friends-list">
+    {% if friends_list %}
+
+    {% for friend in friends_list %}
+
+    <li class="friend">
+
+      <span class="friend-name">
+        
+      {% if username == friend.1 %}
+      {{ friend.2 }}
+      {% else %}
+      {{ friend.1 }}
+
+      {% endif %}
+      </span>
+      <div class="button-container">
+        <button class="button create-chat-button">Crear Chat</button>
+        <button class="button go-to-chat-button" onclick="openModal()">Ir al Chat</button>
+      </div>
+    </li>
+    
+    {% endfor %}
+
+    {% endif %}
+
+  </ul>
+
+  <button class="button" onclick="goBack()">Volver</button>
+</div>
+
+<!-- Ventana modal -->
+<div class="modal" id="modal">
+    <div class="modal-content">
+      <p>No has creado un chat con Amigo 1. ¿Deseas crearlo?</p>
+      <div class="modal-buttons">
+        <button class="modal-button modal-create-chat-button" onclick="createChat()">Crear Chat</button>
+        <button class="modal-button modal-cancel-button" onclick="closeModal()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+    function goBack() {
+      window.history.back();
+    }
+  
+    function openModal() {
+      document.getElementById('modal').style.display = 'flex';
+    }
+  
+    function closeModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+  
+    function createChat(id) {
+      // Lógica para crear el chat con Amigo 1
+      window.location.href = '/chat/private/menu/create' + id;
+    }
+
+
+</script>
+
+</body>
+</html>
