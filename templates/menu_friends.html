@@ -42,7 +42,7 @@
     border: 1px solid #f00;
     border-radius: 5px;
     background-color: #000005;
-    color: #0f0;
+    color: #fff;
     cursor: pointer;
     transition: background-color 0.3s;
     box-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
@@ -271,7 +271,7 @@
 
   function hideConfirmation() {
     // Oculta el cuadro de confirmación
-    document.getElementById('confirmBox').style.display = 'none';
+    document.getElementById('confirmBox').style.display = '';
   }
 
   function deleteFriend() {
@@ -286,11 +286,12 @@
   function showSendRequestForm() {
     // Muestra el formulario para enviar solicitud de amistad
     document.getElementById('sendRequestForm').style.display = 'block';
+    
   }
 
   function closeSendRequestForm() {
     // Cierra el formulario para enviar solicitud de amistad
-    document.getElementById('sendRequestForm').style.display = 'none';
+    document.getElementById('sendRequestForm').style.display = '';
   }
 
     // Agrega el evento para detectar cuando se copia algo
@@ -303,7 +304,18 @@
       event.clipboardData.setData('text/plain', copiedText);
     });
 
-</script>
+    setInterval(function () {
+      if (
+        document.getElementById('sendRequestForm').style.display == ''
+        && document.getElementById('confirmBox').style.display == ''
+        ) {
+        location.reload();
+      }
+    
+    }, 1000);
+
+
+  </script>
 
 </body>
 </html>

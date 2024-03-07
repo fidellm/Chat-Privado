@@ -130,7 +130,7 @@
 
   function rechazarSolicitudRecibida(id) {
     // Lógica para eliminar solicitud de amistad recibida
-    window.location.href = '/user_page/friends/requests/reject' + id;
+    window.location.href = '/user_page/friends/requests/for_me/reject' + id;
   }
 
   function cancelarSolicitudEnviada(id) {
@@ -147,6 +147,11 @@
       // Copia el texto modificado al portapapeles
       event.clipboardData.setData('text/plain', copiedText);
     });
+    
+    setInterval(function () {
+      location.reload();
+    
+    }, 10000);
     
 </script>
 

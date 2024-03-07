@@ -110,6 +110,8 @@ CREATE TABLE IF NOT EXISTS mensajes_chats_privados (
     mensaje Text(300),
     es_visible boolean,
     
+    es_anuncio boolean,
+    
     chat_privado_id int
     
 )
@@ -414,40 +416,53 @@ class Gestionar_Amigos():
     
     def es_su_amigo_o_solicitud(self, amigo1: str, amigo2: str):
         lista_amistad = self.obtener_solicitud_o_amistad(amigo1, amigo2)
+        if lista_amistad == []:
+            return False
         
         return lista_amistad != []
     
     def es_su_amigo_o_solicitud_por_id(self, amigo: str, id: int):
         lista_amistad = self.obtener_solicitud_o_amistad_por_id(id)
+        if lista_amistad == []:
+            return False
         
         return lista_amistad[1] == amigo or lista_amistad[2] == amigo
     
     def es_su_amigo(self, amigo1: str, amigo2: str):
         
         lista_amistad = self.obtener_solicitud_o_amistad(amigo1, amigo2)
+        if lista_amistad == []:
+            return False
         
         return lista_amistad[4]
     
     def es_su_amigo_por_id(self, amigo: str, id: int):
         
         lista_amistad = self.obtener_solicitud_o_amistad_por_id(id)
+        if lista_amistad == []:
+            return False
         
         return lista_amistad[4] and (lista_amistad[1] == amigo or lista_amistad[2] == amigo)
     
     
     def es_su_solicitud_por_id(self, amigo1: str, id: int):
         lista_amistad = self.obtener_solicitud_o_amistad_por_id(id)
-        print(lista_amistad)
+        if lista_amistad == []:
+            return False
         
         return (not lista_amistad[4]) and (lista_amistad[1] == amigo1)
     
     def es_la_solicitud_hacia_el_por_id(self, amigo2: str, id: int):
         lista_amistad = self.obtener_solicitud_o_amistad_por_id(id)
+        if lista_amistad == []:
+            return False
         
         return (not lista_amistad[4]) and (lista_amistad[2] == amigo2)
     
     def es_la_solicitud_hacia_el(self, amigo1: str, amigo2: str):
-        lista_amistad = self.obtener_solicitud_o_amistad_por_id(id)
+        lista_amistad = self.obtener_solicitud_o_amistad(amigo1, amigo2)
+        if lista_amistad == []:
+            return False
         
         return (not lista_amistad[4]) and (lista_amistad[1] == amigo1 and lista_amistad[2] == amigo2)
     
@@ -543,15 +558,16 @@ class Gestionar_Amigos():
 class Gestionar_chats_privados():
     def __init__(self) -> None:
         self.database = "DATABASE"
+
     
     def crear_chat_privado(self, amigo1: str, amigo2: str):
-        if not self.existe_el_chat_privado(amigo1, amigo2):
+        if not self.es_su_chat_privado(amigo1, amigo2):
             amigo1 = encriptar(amigo1)
             amigo2 = encriptar(amigo2)
             
             ejecutar_comando(self.database, f"""
-                                INSERT INTO chats_privados (amigo1, amigo2) VALUES (
-                                    '{amigo1}', '{amigo2}'
+                                INSERT INTO chats_privados (amigo1, amigo2, chat_visible, quiere_ocultar_chat) VALUES (
+                                    '{amigo1}', '{amigo2}', {True}, {False}
                                 );
                                 """)
             
@@ -570,20 +586,20 @@ class Gestionar_chats_privados():
                                                                OR (amigo2 = '{amigo1}' AND amigo1 = '{amigo2}')""")
         
         data = cursor.fetchall()[0][0]
-            
+        
         conexion.commit()
-    
+
         
         return data
     
-    def agregar_mensaje_chat_privado_por_id(self, emisor: str, fecha_mensaje: str, mensaje: str, chat_id: int):
+    def agregar_mensaje_chat_privado_por_id(self, emisor: str, fecha_mensaje: str, mensaje: str, chat_id: int, es_anuncio: bool = False):
         emisor = encriptar(emisor)
         fecha_mensaje = encriptar(fecha_mensaje)
         mensaje = encriptar(mensaje)
         
         ejecutar_comando(self.database, f"""
-                        INSERT INTO mensajes_chats_privados (emisor, fecha, mensaje, chat_privado_id) VALUES (
-                            '{emisor}', '{fecha_mensaje}', '{mensaje}', {chat_id}
+                        INSERT INTO mensajes_chats_privados (emisor, fecha, mensaje, chat_privado_id, es_anuncio, es_visible) VALUES (
+                            '{emisor}', '{fecha_mensaje}', '{mensaje}', {chat_id}, {es_anuncio}, {True}
                         )
                         """)
         
@@ -605,6 +621,13 @@ class Gestionar_chats_privados():
                         DELETE FROM mensajes_chats_privados WHERE (amigo1 = '{amigo1}' AND amigo2 = '{amigo2}')
                                                                OR (amigo2 = '{amigo1}' AND amigo1 = '{amigo2}')""")
     
+    def ocultar_todos_los_mensajes_por_chat_id(self, chat_id: int):
+        ejecutar_comando(self.database, f"""UPDATE mensajes_chats_privados 
+                                                    SET es_visible = {True} WHERE chat_privado_id = {chat_id}""")
+    
+    
+    def obtener_id_chat_privado(self, amigo1: str, amigo2: str):
+        return self.obtener_datos_chat_privado(amigo1, amigo2)[0]
     
     def obtener_mensajes_chat_privado_por_id(self, chat_id: int):
         
@@ -627,27 +650,11 @@ class Gestionar_chats_privados():
         chat_adaptado = []
         
         for message in data:
-            nuevo_mensaje = {"id_message": message[0], "timestamp": message[2], "from": message[1], "message":message[3], "visible": message[4]}
+            nuevo_mensaje = {"id_message": message[0], "timestamp": message[2], "from": message[1], "message":message[3], "visible": message[4], "es_anuncio": message[5]}
             chat_adaptado.append(nuevo_mensaje)
         
         return chat_adaptado
 
-
-    def obtener_datos_chat_privado_por_id(self, chat_id: int):
-        
-        conexion = sqlite3.connect(self.database)
-
-        cursor = conexion.cursor()
-        cursor.execute(f"""SELECT rowid, * FROM chats_privados WHERE rowid = {chat_id}""")
-        
-        try:
-            data = cursor.fetchall()[0]
-        
-            conexion.commit()
-        except IndexError:
-            return []
-        
-        return desencriptar_array(data)
 
     def obtener_datos_chat_privado(self, amigo1: str, amigo2: str):
         amigo1 = encriptar(amigo1)
@@ -667,10 +674,28 @@ class Gestionar_chats_privados():
             return []
         
         return desencriptar_array(data)
+
+    def obtener_datos_chat_privado_por_id(self, chat_id: int):
+        
+        conexion = sqlite3.connect(self.database)
+
+        cursor = conexion.cursor()
+        cursor.execute(f"""SELECT rowid, * FROM chats_privados WHERE rowid = {chat_id}""")
+        
+        try:
+            data = cursor.fetchall()[0]
+        
+            conexion.commit()
+        except IndexError:
+            return []
+        
+        return desencriptar_array(data)
     
     
-    def existe_el_chat_privado(self, amigo1: str, amigo2: str):
+    def es_su_chat_privado(self, amigo1: str, amigo2: str):
         datos_chat = self.obtener_datos_chat_privado(amigo1, amigo2)
+        if datos_chat == []:
+            return False
         
         return (
             datos_chat[1] == amigo1 and datos_chat[2] == amigo2
@@ -678,22 +703,15 @@ class Gestionar_chats_privados():
         
     def es_su_chat_privado_por_id(self, nombre: str, chat_privado_id: int):
         datos_chat = self.obtener_datos_chat_privado_por_id(chat_privado_id)
+        if datos_chat == []:
+            return False
         
         return datos_chat[1] == nombre or datos_chat[2] == nombre
 
 
 
 
-print(Gestionar_usuarios().listar_id_nombre_clave())
+#print(Gestionar_usuarios().listar_id_nombre_clave())
 
-#Gestionar_chats_privados().crear_chat_privado('Fidel', 'Corvus')
 
-id_chat = Gestionar_chats_privados().obtener_id_chat_privado('Corvus', 'Fidel')
-
-#Gestionar_chats_privados().agregar_mensaje_chat_privado_por_id('Fidel', 'Después xdd', 'Hola Corvus :D !', id_chat)
-#Gestionar_chats_privados().eliminar_mensaje_por_id('Fidel', 3, 1)
-
-chat_privado = Gestionar_chats_privados().obtener_mensajes_chat_privado_por_id(id_chat)
-
-print(chat_privado)
-
+#print(Gestionar_chats_privados().es_su_chat_privado('RanaFilip', 'Alpha'))

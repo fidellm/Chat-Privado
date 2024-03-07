@@ -78,18 +78,9 @@
         }
       
         /* Estilos de la ventana modal */
-        .modal {
-        
-        {% if create_chat.0 %}
-            display: flex;
-        {% else %}
-            display: none;
-
-        {% endif %}
-        
-        }
 
         .modal {
+          display: block;
 
           position: fixed;
           top: 0;
@@ -139,6 +130,7 @@
       
       </style>
 
+
 <div class="container">
   <h1>Menú de Chats Privados</h1>
 
@@ -159,8 +151,7 @@
       {% endif %}
       </span>
       <div class="button-container">
-        <button class="button create-chat-button">Crear Chat</button>
-        <button class="button go-to-chat-button" onclick="openModal()">Ir al Chat</button>
+        <button class="button go-to-chat-button" onclick="go_private_chat('{{ friend.0 }}')">Ir al Chat</button>
       </div>
     </li>
     
@@ -173,20 +164,26 @@
   <button class="button" onclick="goBack()">Volver</button>
 </div>
 
-<!-- Ventana modal -->
+
+{% if create_chat.0 %}
+
+<!-- Ventana modal-->
 <div class="modal" id="modal">
     <div class="modal-content">
-      <p>No has creado un chat con Amigo 1. ¿Deseas crearlo?</p>
+      <p id="modal-text">No has creado un chat con {{ create_chat.2 }}. ¿Deseas crearlo?</p>
       <div class="modal-buttons">
-        <button class="modal-button modal-create-chat-button" onclick="createChat()">Crear Chat</button>
+        <button class="modal-button modal-create-chat-button" onclick="createChat('{{ create_chat.1 }}')">Crear Chat</button>
         <button class="modal-button modal-cancel-button" onclick="closeModal()">Cancelar</button>
       </div>
     </div>
   </div>
+{% endif %}
 
-<script>
+
+<script>    
+
     function goBack() {
-      window.history.back();
+      window.location.href = '/user_page';
     }
   
     function openModal() {
@@ -196,10 +193,15 @@
     function closeModal() {
       document.getElementById('modal').style.display = 'none';
     }
-  
+    
+
     function createChat(id) {
       // Lógica para crear el chat con Amigo 1
-      window.location.href = '/chat/private/menu/create' + id;
+      window.location.href = '/chat/private/create/' + id;
+    }
+
+    function go_private_chat(friend_id) {
+      window.location.href = '/chat/private/go/' + friend_id;
     }
 
 
