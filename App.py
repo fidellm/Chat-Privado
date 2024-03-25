@@ -98,7 +98,14 @@ def actualizar_ultima_conexion_usuario(username: str, ultima_conexion = None):
     gestionar.actualizar_ultima_conexion(nombre=username, ultima_conexion=now)
 
 def get_time_now():
-    return datetime.now().strftime("%H:%M:%S")
+    
+    # Obtener la fecha y hora actual
+    fecha_hora_actual = datetime.now()
+
+    # Formatear la fecha y hora actual en formato español
+    fecha_hora_español = fecha_hora_actual.strftime(r"%d/%m/%Y %H:%M:%S")
+    
+    return fecha_hora_español
 
 def add_message(username, message, is_management_server: bool = False):
     """ Add messages to the 'messages' list """
@@ -111,7 +118,7 @@ def add_message(username, message, is_management_server: bool = False):
         if not is_management_server:
             actualizar_ultima_conexion_usuario(username=username)
 
-        new_message = {"id_message": len(messages)+1, "timestamp": now, "from": username, "message":message, "visible": True}
+        new_message = {"id_message": len(messages)+1, "timestamp": now, "from": username, "message":message, "visible": True, "es_anuncio": is_management_server}
         
         messages.append(new_message)
         return new_message
@@ -174,7 +181,7 @@ def Index():
             print("si es admin")
             username = session["username"]
             session["server_password"] = clave_super_secreta
-
+            
             return redirect(url_for("user_page"))
         elif saber_si_se_parece_admin(username):
             flash(f"El nombre '{username}' está reservado para el administrador.")
@@ -295,6 +302,7 @@ def user_page():
         
         try:
             if session['server_password'] != clave_super_secreta:
+                print(f"\nEl usuario '{username}' intentó ingresar a '/user_page' sin la contraseña de acceso al servidor y sus funciones\n")
                 flash('No has ingresado con la verdadera clave de acceso al servidor y sus funciones')
                 return redirect(url_for('clean_user'))
         except:
@@ -339,6 +347,32 @@ def user_page():
         
         
     return render_template("menu_user.html", username= username, title= 'Menú de usuario')
+@app.route('/user_page/logout')
+def logout():
+    try:
+        gestionar = gs.Gestionar_usuarios()
+        
+        username = session["username"]
+        try:
+            user_password = session['user_password']
+        except:
+            print(f'El usuario {username} no tenía contraseña en la sesión')
+        
+        
+        if username == "":
+            print("el username está vacio")
+            flash("Intentaste entrar al menú de usuario sin iniciar sesion.")
+            return redirect(url_for("Index"))
+        elif saber_si_es_admin(name=username, password=user_password):
+            pass
+        elif not gestionar.es_el_usuario(nombre=username, clave=user_password):
+            print('Intentaste ingresar con un nombre de usuario que no existe')
+        
+        print(f"\nEl usuario '{username}' ha cerrado sesión.\n")
+        return redirect(url_for('clean_user'))
+    except:
+        return redirect(url_for("clean_user"))
+    
 
 @app.route('/user_page/friends')
 def menu_friends():
@@ -732,31 +766,6 @@ def reject_friend_request_for_me(id_request: int):
     return redirect(url_for('friend_requests'))
 
 
-@app.route('/user_page/logout')
-def logout():
-    try:
-        gestionar = gs.Gestionar_usuarios()
-        
-        username = session["username"]
-        try:
-            user_password = session['user_password']
-        except:
-            print(f'El usuario {username} no tenía contraseña en la sesión')
-        
-        
-        if username == "":
-            print("el username está vacio")
-            flash("Intentaste entrar al menú de usuario sin iniciar sesion.")
-            return redirect(url_for("Index"))
-        elif saber_si_es_admin(name=username, password=user_password):
-            pass
-        elif not gestionar.es_el_usuario(nombre=username, clave=user_password):
-            print('Intentaste ingresar con un nombre de usuario que no existe')
-        
-        return redirect(url_for('clean_user'))
-    except:
-        return redirect(url_for("clean_user"))
-    
 
 @app.route('/chat/public/go', methods = ["GET", "POST"])
 def go_chat():
@@ -1395,3 +1404,6 @@ print(clave_super_secreta +""" es la clave super secreta
 if __name__ == '__main__':
     app.run(host=os.getenv('IP', '0.0.0.0'), port=int(os.getenv('PORT', '80')), debug=True)
 
+
+# Hecho por Alpha...
+# Somos legión...
