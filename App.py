@@ -41,7 +41,22 @@ messages = []
 
 clave_super_secreta = "amigos1234"
 
-array_admins = {"alpha": "arrozfilo27", "corvus": "1920", "delta": "nacho1234"}
+array_admins = {"Alpha": "arrozfilo27", "Corvus": "1920", "delta": "nacho1234"}
+
+def saber_si_se_parece_admin(nombre: str):
+    for i in array_admins:
+        if nombre.lower() in i.lower():
+            return True
+    return False
+
+def saber_si_es_admin(name: str, password: str):
+    for i in array_admins:
+        if i.lower() == name.lower() and array_admins[i] == password:
+            return True
+    
+    return False
+
+
 
 lista_usuarios_registrados = []
 
@@ -68,27 +83,14 @@ def agregar_usuario_lista_en_chat_public(name: str, is_admin: bool):
     
     lista_usuarios_en_el_chat_public.append( { 'id': gestionar.obtener_id_por_nombre(nombre= name), 'name': name, 'is_admin': is_admin} )
     
-    
-    
 
-def saber_si_se_parece_admin(nombre):
-    for i in array_admins:
-        if nombre.lower() in i.lower():
-            return True
-    return False
 
-def saber_si_es_admin(name: str, password: str):
-    for i in array_admins:
-        if i.lower() == name.lower() and array_admins[i] == password:
-            return True
-    
-    return False
 
 def actualizar_ultima_conexion_usuario(username: str, ultima_conexion = None):
     gestionar = gs.Gestionar_usuarios()
     
     print("ESTE ESSS EL NOMBRE DE USUARIOOOO ===== " + username)
-    if username.lower() in array_admins:
+    if username in array_admins:
         return
     
     if ultima_conexion == None:
@@ -534,7 +536,7 @@ def send_friend_request():
             flash('Debes que ingresar el nombre del usuario para mandarle una solicitud de amistad')
             return redirect(url_for('menu_friends'))
         
-        if friend_username.lower() in array_admins:
+        if friend_username in array_admins:
             pass
         else:
             try:
@@ -1215,10 +1217,12 @@ def chat_private(chat_private_id: int):
         return redirect(url_for('chat_private', chat_private_id= chat_private_id))
     
     
-    return render_template("chat_user.html", username = username, is_admin = es_admin, messages = mensajes_chat_privado[::-1], users_in_chat_public = lista_usuarios_en_el_chat_public, title= 'Chat Privado', url_chat_delete = '/chat/private/delete_message/all', url_message_delete= '/chat/private/delete_message/')
+    return render_template("chat_user.html", username = username, is_admin = es_admin, messages = mensajes_chat_privado[::-1], 
+                           users_in_chat_public = lista_usuarios_en_el_chat_public, title= 'Chat Privado', 
+                           url_chat_delete = f'/chat/private/chat{chat_private_id}/delete_message/all', url_message_delete= f'/chat/private/chat{chat_private_id}/delete_message/')
 
-@app.route('/chat/private/chat<int:chat_private_id>/delete_message/all')
-def delete_all_messages_private_chat(chat_private_id: int):
+@app.route('/chat/private/chat<int:private_chat_id>/delete_message/all')
+def delete_all_messages_private_chat(private_chat_id: int):
     try:
         username = session["username"]
         user_password = session["user_password"]
@@ -1238,34 +1242,88 @@ def delete_all_messages_private_chat(chat_private_id: int):
         if not es_admin:
             if username == "":
                 print(f"ALGUIEN INTENTÓ BORRAR UN MENSAJE DEL CHAT PÚBLICO SIN INICIAR SESIÓN")
-                flash("¿Qué intentaste hacer? No iniciaste sesión, no sos administrador, e intentaste borrar el chat público...")
+                flash("¿Qué intentaste hacer? No iniciaste sesión, no sos administrador, e intentaste borrar un chat privado...")
                 return redirect(url_for("Index"))
             elif user_password == '':
                 print(F"EL USUARIO '{username}' INTENTÓ BORRAR EL CHAT PÚBLICO SIN UNA CONTRASEÑA")
-                flash(f"¿Qué intentaste hacer? No iniciaste sesión con contraseña, no sos administrador, e intentaste borrar el chat público...")
+                flash(f"¿Qué intentaste hacer? No iniciaste sesión con contraseña, no sos administrador, e intentaste borrar un chat privado...")
             elif not gestionar.es_el_usuario(nombre= username, clave= user_password):
                 print(f"\nEl usuario {username} intentó borrar el chat público con una contraseña falsa...\n")
                 flash("Intentaste borrar el chat público con un usuario falso... No lo vuelvas a intentar...")
                 return redirect(url_for('clean_user'))
             
             print(f"UN USUARIO NORMAL '{username}' INTENTÓ BORRAR EL CHAT PÚBLICO")
-            flash("¿Qué intentaste hacer? No sos administrador e intentaste borrar el chat público...")
+            flash("¿Qué intentaste hacer? No sos administrador e intentaste borrar un chat privado...")
             
             return redirect(url_for('user_page'))
 
     except:
-        flash("¿Qué intentaste hacer? No iniciaste sesión, no sos administrador, e intentaste borrar el chat público...")
+        flash("¿Qué intentaste hacer? No iniciaste sesión, no sos administrador, e intentaste borrar un chat privado...")
         return redirect(url_for("clean_user"))
     
     gestionar_chats_privados = gs.Gestionar_chats_privados()
     
     if es_admin:
-        gestionar_chats_privados.eliminar_todos_los_mensajes_por_chat_id(chat_id= chat_private_id)
+        gestionar_chats_privados.eliminar_todos_los_mensajes_por_chat_id(chat_id= private_chat_id)
     else:
-        gestionar_chats_privados.ocultar_todos_los_mensajes_por_chat_id(chat_id= chat_private_id)
-    
-    return redirect(url_for('chat_private', chat_private_id= chat_private_id))
+        if not gestionar_chats_privados.es_su_chat_privado_por_id(nombre= username, chat_privado_id= private_chat_id):
+            flash('Intentaste infiltrarte en un chat privado...')
+            return redirect(url_for('user_page'))
 
+        gestionar_chats_privados.ocultar_todos_los_mensajes_por_chat_id(chat_id= private_chat_id)
+    
+    
+    return redirect(url_for('chat_private', chat_private_id= private_chat_id))
+
+@app.route('/chat/private/chat<int:private_chat_id>/delete_message/<int:message_id>')
+def delete_message_private_chat(private_chat_id: int, message_id: int):
+    try:
+        username = session["username"]
+        user_password = session["user_password"]
+        
+        try:
+            if session['server_password'] != clave_super_secreta:
+                flash('No has ingresado con la verdadera clave de acceso al servidor y sus funciones')
+                return redirect(url_for('clean_user'))
+        except:
+            flash('No has ingresado con la clave de acceso al servidor y sus funciones...')
+            return redirect(url_for('clean_user'))
+        
+        gestionar = gs.Gestionar_usuarios()
+        
+        es_admin = saber_si_es_admin(name= username, password= user_password)
+        
+        if not es_admin:
+            if username == "":
+                print(f"ALGUIEN INTENTÓ BORRAR UN MENSAJE DEL UN CHAT PRIVADO SIN INICIAR SESIÓN")
+                flash("¿Qué intentaste hacer? No iniciaste sesión, no sos administrador, e intentaste borrar un chat privado...")
+                return redirect(url_for("Index"))
+            elif user_password == '':
+                print(F"EL USUARIO '{username}' INTENTÓ BORRAR UN CHAT PRIVADO SIN UNA CONTRASEÑA")
+                flash(f"¿Qué intentaste hacer? No iniciaste sesión con contraseña, no sos administrador, e intentaste borrar un chat privado...")
+            elif not gestionar.es_el_usuario(nombre= username, clave= user_password):
+                print(f"\nEl usuario {username} intentó borrar el chat público con una contraseña falsa...\n")
+                flash("Intentaste borrar el chat público con un usuario falso... No lo vuelvas a intentar...")
+                return redirect(url_for('clean_user'))
+
+    except:
+        flash("¿Qué intentaste hacer? No iniciaste sesión, no sos administrador, e intentaste borrar un chat privado...")
+        return redirect(url_for("clean_user"))
+    
+    gestionar_chats_privados = gs.Gestionar_chats_privados()
+    
+    if es_admin:
+        gestionar_chats_privados.eliminar_mensaje_por_id_por_id_chat(mensaje_id= message_id, chat_id= private_chat_id)
+        print(f'mensaje eliminado por {username}')
+    else:
+        if not gestionar_chats_privados.es_su_chat_privado_por_id(nombre= username, chat_privado_id= private_chat_id):
+            flash('Intentaste infiltrarte en un chat privado...')
+            print(f'El usuario {username} intentó borrar el chat de id {private_chat_id} sin que sea \nsu chat o que él sea admin')
+            return redirect(url_for('user_page'))
+
+        gestionar_chats_privados.ocultar_mensaje_por_id_por_id_chat(mensaje_id= message_id, chat_id= private_chat_id)
+
+    return redirect(url_for('chat_private', chat_private_id= private_chat_id))
 
 
 @app.route('/manage_users')

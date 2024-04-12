@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="https://cdn0.iconfinder.com/data/icons/kameleon-free-pack/110/Hacker-512.png" type="image/x-icon">
 
 <title>Menú de Chats Privados</title>
 
@@ -12,7 +13,7 @@
     <style>
         body {
           font-family: Arial, sans-serif;
-          background-color: #0f0f0f;
+          background-color: #000;
           color: #ffffff;
           margin: 0;
           padding: 0;
@@ -20,11 +21,18 @@
       
         .container {
           max-width: 800px;
+          
           margin: 20px auto;
           padding: 20px;
-          background-color: #1f1f1f;
+          
+          background-color: #030303;
+          box-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+
+          border-style: double;
           border-radius: 10px;
-          box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+          border-width: 10px;
+          border-color: rgba(255, 255, 255, 0.3);;
+
         }
       
         h1 {
@@ -56,11 +64,14 @@
         }
       
         .button {
-          padding: 8px 20px;
-          border: none;
+          padding: 0.8rem 2rem;
+          border: 1px solid #f00;
           border-radius: 5px;
+          background-color: #000005;
+          color: #0f0;
           cursor: pointer;
           transition: background-color 0.3s;
+          box-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
         }
       
         .create-chat-button {
@@ -74,7 +85,8 @@
         }
       
         .button:hover {
-          background-color: #0056b3;
+          background-color: #090909;
+          color: #f0f8ff;
         }
       
         /* Estilos de la ventana modal */
@@ -128,7 +140,7 @@
           background-color: #0056b3;
         }
       
-      </style>
+</style>
 
 
 <div class="container">
@@ -177,6 +189,7 @@
       </div>
     </div>
   </div>
+
 {% endif %}
 
 

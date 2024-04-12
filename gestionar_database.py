@@ -603,11 +603,15 @@ class Gestionar_chats_privados():
                         )
                         """)
         
-    def eliminar_mensaje_por_id(self, emisor: str, mensaje_id: int, chat_id: int):
+    def eliminar_mensaje_por_id_por_id_chat_y_emisor(self, emisor: str, mensaje_id: int, chat_id: int):
         emisor = encriptar(emisor)
         
         ejecutar_comando(self.database, f"""
                         DELETE FROM mensajes_chats_privados WHERE rowid = {mensaje_id} AND chat_privado_id = {chat_id} AND emisor = '{emisor}' """)
+
+    def eliminar_mensaje_por_id_por_id_chat(self, mensaje_id: int, chat_id: int):
+        ejecutar_comando(self.database, f"""
+                        DELETE FROM mensajes_chats_privados WHERE rowid = {mensaje_id} AND chat_privado_id = {chat_id}""")
         
     def eliminar_todos_los_mensajes_por_chat_id(self, chat_id: int):
         ejecutar_comando(self.database, f"""
@@ -623,7 +627,12 @@ class Gestionar_chats_privados():
     
     def ocultar_todos_los_mensajes_por_chat_id(self, chat_id: int):
         ejecutar_comando(self.database, f"""UPDATE mensajes_chats_privados 
-                                                    SET es_visible = {True} WHERE chat_privado_id = {chat_id}""")
+                                                    SET es_visible = {False} WHERE chat_privado_id = {chat_id}""")
+    
+    def ocultar_mensaje_por_id_por_id_chat(self, mensaje_id: int, chat_id: int):
+        ejecutar_comando(self.database, f"""
+                        UPDATE mensajes_chats_privados SET es_visible = {False} 
+                                WHERE rowid = {mensaje_id} AND chat_privado_id = {chat_id}""")
     
     
     def obtener_id_chat_privado(self, amigo1: str, amigo2: str):
@@ -709,7 +718,7 @@ class Gestionar_chats_privados():
         return datos_chat[1] == nombre or datos_chat[2] == nombre
 
 
-
+print(Gestionar_chats_privados().es_su_chat_privado_por_id('Echo', 1))
 
 #print(Gestionar_usuarios().listar_id_nombre_clave())
 

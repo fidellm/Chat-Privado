@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="https://cdn0.iconfinder.com/data/icons/kameleon-free-pack/110/Hacker-512.png" type="image/x-icon">
+
 <title>{{ title }}</title>
 </head>
 <body>
@@ -265,19 +267,24 @@
       <p class="data-message"><span class="hora">{{ message.timestamp }} </span> {% if not message.visible %} <span style="color: #00f;"><</span> {% else %} <span style="color: #00f;"><</span> {% endif %}<span class="emisor">{{ message.from }}</span></p>
       <p class="message-message">{{ message.message }}</p>
 
+      <button onclick="borrar_mensaje('{{ message.id_message }}')">borrar</button>
+
       {% else %}
       {% if message.visible %}
       <p class="data-message"><span class="hora">{{ message.timestamp }}< </span> <span class="emisor">{{ message.from }}</span></p>
       <p class="message-message">{{ message.message }}</p>
       
-      {% endif %}
-      
-      {% endif %}
-
+      {% if message.from == username %}
       <button onclick="borrar_mensaje('{{ message.id_message }}')">borrar</button>
+      {% endif %}
+
+
+      {% endif %}
       
       {% endif %}
 
+
+      {% endif %}
 
 
       {% endfor %}
