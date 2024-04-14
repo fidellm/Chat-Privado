@@ -700,6 +700,11 @@ class Gestionar_chats_privados():
         
         return desencriptar_array(data)
     
+    def obtener_usuarios_chat_privado_por_id(self, chat_id: int):
+        datos_array = self.obtener_datos_chat_privado_por_id(chat_id)
+        
+        return {'amigo1': datos_array[0], 'amigo2': datos_array[1]}
+    
     
     def es_su_chat_privado(self, amigo1: str, amigo2: str):
         datos_chat = self.obtener_datos_chat_privado(amigo1, amigo2)
@@ -717,10 +722,3 @@ class Gestionar_chats_privados():
         
         return datos_chat[1] == nombre or datos_chat[2] == nombre
 
-
-print(Gestionar_chats_privados().es_su_chat_privado_por_id('Echo', 1))
-
-#print(Gestionar_usuarios().listar_id_nombre_clave())
-
-
-#print(Gestionar_chats_privados().es_su_chat_privado('RanaFilip', 'Alpha'))

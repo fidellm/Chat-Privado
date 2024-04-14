@@ -90,7 +90,13 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #333;
+    
+    width: 80%;
+    max-width: 500px;
+
+    background-color: #060606;
+    box-shadow: 0 0 100px rgba(255, 255, 255, 0.9);
+
     color: #fff;
     padding: 20px;
     border-radius: 10px;
@@ -107,11 +113,12 @@
   }
 
   .confirm-box button.confirm {
-    background-color: #f00;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.7);
+    margin-bottom: 15px;
   }
 
   .confirm-box button.cancel {
-    background-color: #00f;
+    box-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
   }
 
   /* Formulario de enviar solicitud de amistad */
@@ -259,7 +266,7 @@
 <!-- Cuadro de confirmación -->
 <div class="confirm-box" id="confirmBox">
   <p>¿Estás seguro de eliminar esta amistad?</p>
-  <button class="confirm" onclick="deleteFriend()">Eliminar Amistad</button>
+  <button class="confirm" onclick="deleteFriend()">Confirmar</button>
   <button class="cancel" onclick="hideConfirmation()">Cancelar</button>
 </div>
 
