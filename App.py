@@ -41,7 +41,7 @@ messages = []
 
 clave_super_secreta = "amigos1234"
 
-array_admins = {"Alpha": "arrozfilo27", "Corvus": "1920", "Delta": "nacho1234"}
+array_admins = {"Alpha": "arrozfilo27", 'Bravo': 'arroz1234', "Corvus": "1920", "Delta": "nacho1234"}
 
 def saber_si_se_parece_admin(nombre: str):
     for i in array_admins:
@@ -1268,7 +1268,7 @@ def private_chat(private_chat_id: int): # Un chat privado
         
         gestionar_chat_privado.agregar_mensaje_chat_privado_por_id(emisor= username, fecha_mensaje=now, mensaje= mensaje, chat_id= private_chat_id)
         
-        return redirect(url_for('chat_private', chat_private_id= private_chat_id))
+        return redirect(url_for('private_chat', private_chat_id= private_chat_id))
     
     
     return render_template("chat_user.html", username = username, is_admin = is_admin, messages = mensajes_chat_privado[::-1], 
@@ -1327,7 +1327,7 @@ def delete_all_messages_private_chat(private_chat_id: int): # Eliminar todos los
         gestionar_chats_privados.ocultar_todos_los_mensajes_por_chat_id(chat_id= private_chat_id) # Se ocultan todos los mensajes de ese chat
     
     
-    return redirect(url_for('chat_private', chat_private_id= private_chat_id))
+    return redirect(url_for('private_chat', private_chat_id= private_chat_id))
 
 @app.route('/chat/private/chat<int:private_chat_id>/delete_message/<int:message_id>')
 def delete_message_private_chat(private_chat_id: int, message_id: int): # Eliminar un mensaje de un chat privado
@@ -1377,7 +1377,7 @@ def delete_message_private_chat(private_chat_id: int, message_id: int): # Elimin
 
         gestionar_chats_privados.ocultar_mensaje_por_id_por_id_chat(mensaje_id= message_id, chat_id= private_chat_id) # Ocultar ese mensaje
 
-    return redirect(url_for('chat_private', chat_private_id= private_chat_id))
+    return redirect(url_for('private_chat', private_chat_id= private_chat_id))
 
 
 @app.route('/manage_users')
