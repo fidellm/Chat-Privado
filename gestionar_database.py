@@ -703,7 +703,7 @@ class Gestionar_chats_privados():
     def obtener_usuarios_chat_privado_por_id(self, chat_id: int):
         datos_array = self.obtener_datos_chat_privado_por_id(chat_id)
         
-        return {'amigo1': datos_array[0], 'amigo2': datos_array[1]}
+        return {'amigo1': datos_array[1], 'amigo2': datos_array[2]}
     
     
     def es_su_chat_privado(self, amigo1: str, amigo2: str):

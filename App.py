@@ -1,6 +1,6 @@
 import os
-from datetime import datetime
 from flask import Flask, redirect, render_template, request, session, url_for, flash
+from gestionar_fechas import Fecha
 from datetime import datetime
 import gestionar_database as gs
 import random
@@ -94,20 +94,11 @@ def actualizar_ultima_conexion_usuario(username: str, ultima_conexion: str = Non
         return
     
     if ultima_conexion == None:
-        now = get_time_now()
+        now = Fecha()
     else:
         now = ultima_conexion
-    gestionar.actualizar_ultima_conexion(nombre=username, ultima_conexion=now)
+    gestionar.actualizar_ultima_conexion(nombre=username, ultima_conexion=now.get_txt_fecha())
 
-def get_time_now(): # Método para obtener la fecha y la hora actual (con mlisegundos de diferencia...)
-    
-    # Obtener la fecha y hora actual
-    fecha_hora_actual = datetime.now()
-
-    # Formatear la fecha y hora actual en formato español
-    fecha_hora_español = fecha_hora_actual.strftime(r"%d/%m/%Y %H:%M:%S")
-    
-    return fecha_hora_español
 
 def add_message(username, message, is_management_server: bool = False): # Método para agregar un mensaje al chat público
     """ Add messages to the 'messages' list """
@@ -115,12 +106,12 @@ def add_message(username, message, is_management_server: bool = False): # Métod
     """ 2nd set of {} refers to 2nd argument = message """
     """ Python can accept either {1} or {} """
     if message.replace(" ", "") != "":
-        now = get_time_now() # new variable = now
+        now = Fecha() # new variable = now
 
         if not is_management_server:
             actualizar_ultima_conexion_usuario(username=username)
 
-        new_message = {"id_message": len(messages)+1, "timestamp": now, "from": username, "message":message, "visible": True, "es_anuncio": is_management_server}
+        new_message = {"id_message": len(messages)+1, "timestamp": now.get_txt_fecha(), "from": username, "message":message, "visible": True, "es_anuncio": is_management_server}
         
         messages.append(new_message)
         return new_message
@@ -235,7 +226,8 @@ def register(): # Apartado para registrar un usuario
                     
         
         user_password = request.form["user_password"]
-        ultima_conexion = get_time_now()
+        ultima_conexion = Fecha()
+        txt_ultima_conexion = ultima_conexion.get_txt_fecha()
         
         try:
             server_password = request.form["server_password"]
@@ -266,12 +258,13 @@ def register(): # Apartado para registrar un usuario
         elif gestionar.existe_el_usuario(nombre=username):
             flash("El usuario '" + username + "' ya está registrado")
         else:
-            gestionar.agregar_usuario(nombre=username, clave=user_password, primera_conexion=ultima_conexion, ultima_conexion=ultima_conexion)
+            gestionar.agregar_usuario(nombre=username, clave=user_password, primera_conexion=txt_ultima_conexion, ultima_conexion=txt_ultima_conexion)
             lista_usuarios_registrados.append(username)
             
             if session['remember_me']:
                 session['username'] = username
                 session['user_password'] = user_password
+                session['server_password'] = server_password
                 flash('Bienvenido a La Red...')
                 return redirect(url_for('user_page'))
             else:
@@ -347,9 +340,64 @@ def user_page(): # Menú inicio de los usuarios...
         print(f"El usuario ROOT '{username}' ingresó a /user_page")
     else:
         print(f'El usuario {username} ingresó a /user_page')
+    
+    color_theme = ''
+    try:
+        color_theme = session['color_theme_frontend_web']
+    except:
+        session['color_theme_frontend_web'] = 'dark'
+        color_theme = 'dark'
         
+    return render_template("menu_user.html", username= username, title= 'Menú de usuario', color_theme= color_theme)
+
+@app.route('/user_page/settings/change_color_theme=<color_theme>')
+def change_color_theme_frontend_web(color_theme: str):
+    try:
+        username = session["username"]
+        user_password = session['user_password']
         
-    return render_template("menu_user.html", username= username, title= 'Menú de usuario')
+        try:
+            if session['server_password'] != clave_super_secreta:
+                print(f"\nEl usuario '{username}' intentó ingresar a '/user_page' sin la contraseña de acceso al servidor y sus funciones\n")
+                flash('No has ingresado con la verdadera clave de acceso al servidor y sus funciones')
+                return redirect(url_for('clean_user'))
+        except:
+            flash('No has ingresado con la clave de acceso al servidor y sus funciones...')
+            return redirect(url_for('clean_user'))
+        
+        es_admin = saber_si_es_admin(name=username, password=user_password)
+        
+        gestionar_usuarios = gs.Gestionar_usuarios()
+        
+        if username == "":
+            print(f"\nEl nombre del usuario '{username}' que intentó entrar a '/user_page' ESTÁ VACÍO!\n")
+            flash("No iniciaste sesión...")
+            return redirect(url_for("clean_user"))
+        elif user_password == "":
+            print(f"\nLa contraseña del usuario '{username}' que intentó entrar a '/user_page' ESTÁ VACÍA!\n")
+            flash("No iniciaste sesión...")
+            return redirect(url_for("clean_user"))
+        elif es_admin:
+            pass
+        elif not gestionar_usuarios.existe_el_usuario(nombre=username):
+            print(f"EL USUARIO '{username}' QUE INTENTÓ ENTRAR A /user_page NO EXISTE")
+            return redirect(url_for('clean_user'))
+        elif not gestionar_usuarios.es_el_usuario(nombre=username, clave=user_password):
+            print(f"EL USUARIO '{username}' NO TIENE LA CONTRASEÑA CORRECTA!")
+            return redirect(url_for('clean_user'))
+        
+    except:
+        print(session)
+        print("hubo un error")
+        flash("Intentaste entrar al menú de usuario sin iniciar sesion.")
+        return redirect(url_for("clean_user"))
+    
+    array_color_themes = ['dark', 'white']
+    
+    if color_theme in array_color_themes:
+        session['color_theme_frontend_web'] = color_theme
+    
+    return redirect(url_for('user_page'))
 
 @app.route('/user_page/logout')
 def logout(): # Cerrar sesión
@@ -677,9 +725,9 @@ def accept_friend_request(request_id: int): # Aceptar solicitud de amistad recib
         
         friend_username = gestionar_amigos.obtener_solicitud_o_amistad_por_id(id= request_id)[1]
         
-        time_now = get_time_now()
+        time_now = Fecha()
         
-        gestionar_amigos.aceptar_solicitud(amigo1= friend_username, amigo2= username, fecha_amistad=time_now)
+        gestionar_amigos.aceptar_solicitud(amigo1= friend_username, amigo2= username, fecha_amistad=time_now.get_txt_fecha())
         flash(f'Solicitud de amistad aceptada a {friend_username} exitosamente...')
         
     else:
@@ -835,7 +883,7 @@ def go_chat(): # Ir al chat público
     
     if not saber_si_es_admin(name=username, password=user_password):
         print("no es admin xd")
-        gestionar.actualizar_ultima_conexion(username, get_time_now())
+        actualizar_ultima_conexion_usuario(username)
     
     session["go_chat"] = True
     
@@ -1126,7 +1174,7 @@ def create_private_chat(friend_id: int): # Para que el usuario cree un chat priv
             gestionar_chats_privados.crear_chat_privado(amigo1= username, amigo2= friend_username)
             chat_id = gestionar_chats_privados.obtener_id_chat_privado(amigo1= username, amigo2= friend_username)
             
-            gestionar_chats_privados.agregar_mensaje_chat_privado_por_id(emisor= 'Gestión del servidor', fecha_mensaje=get_time_now(), mensaje=f"'{username}' ha creado el chat con '{friend_username}...'", chat_id= chat_id, es_anuncio= True)
+            gestionar_chats_privados.agregar_mensaje_chat_privado_por_id(emisor= 'Gestión del servidor', fecha_mensaje=Fecha, mensaje=f"'{username}' ha creado el chat con '{friend_username}...'", chat_id= chat_id, es_anuncio= True)
             return redirect(url_for('go_private_chat', friend_id= friend_id))
         
     else:
@@ -1187,7 +1235,7 @@ def go_private_chat(friend_id: int): # Ir a un chat privado
         if gestionar_chats_privados.es_su_chat_privado(amigo1 = username, amigo2= friend_username):
             id_chat_privado = gestionar_chats_privados.obtener_id_chat_privado(amigo1= username, amigo2= friend_username)
             
-            gestionar_chats_privados.agregar_mensaje_chat_privado_por_id(emisor='Gestión del servidor', fecha_mensaje=get_time_now(), mensaje=f"{username} se ha unido.", chat_id=id_chat_privado, es_anuncio=True)
+            gestionar_chats_privados.agregar_mensaje_chat_privado_por_id(emisor='Gestión del servidor', fecha_mensaje=Fecha().get_txt_fecha, mensaje=f"{username} se ha unido.", chat_id=id_chat_privado, es_anuncio=True)
             return redirect(url_for('private_chat', private_chat_id= id_chat_privado))
             
         else:
@@ -1250,7 +1298,7 @@ def private_chat(private_chat_id: int): # Un chat privado
         usuarios_chat_privado = gestionar_chat_privado.obtener_usuarios_chat_privado_por_id(private_chat_id)
         amigo1 = usuarios_chat_privado['amigo1']
         amigo2 = usuarios_chat_privado['amigo2']
-        
+
         print(f'\n{username} ingresó al chat de {amigo1} con {amigo2}\n')
         
     
@@ -1264,9 +1312,9 @@ def private_chat(private_chat_id: int): # Un chat privado
     
     if request.method == "POST":
         mensaje = request.form['message']
-        now = get_time_now()
+        now = Fecha()
         
-        gestionar_chat_privado.agregar_mensaje_chat_privado_por_id(emisor= username, fecha_mensaje=now, mensaje= mensaje, chat_id= private_chat_id)
+        gestionar_chat_privado.agregar_mensaje_chat_privado_por_id(emisor= username, fecha_mensaje=now.get_txt_fecha(), mensaje= mensaje, chat_id= private_chat_id)
         
         return redirect(url_for('private_chat', private_chat_id= private_chat_id))
     
