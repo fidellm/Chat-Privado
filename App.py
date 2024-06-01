@@ -482,7 +482,19 @@ def menu_friends(): # Menú para que los usuarios gestionen sus amistades...
     lista_amistades = gestionar_amigos.listar_amistades_de_un_usuario(username)
     lista_solicitudes_hacia_mi = gestionar_amigos.listar_solicitudes_hacia_un_usuario(nombre= username)
     
-    return render_template('menu_friends.html', username = username, is_admin = es_admin, friends_list = lista_amistades, number_of_requests_for_me = len(lista_solicitudes_hacia_mi))
+    
+    color_theme = ''
+    try:
+        color_theme = session['color_theme_frontend_web']
+    except:
+        session['color_theme_frontend_web'] = 'dark'
+        color_theme = 'dark'
+    
+    
+    return render_template('menu_friends.html', username = username, is_admin = es_admin, 
+                           friends_list = lista_amistades, 
+                           number_of_requests_for_me = len(lista_solicitudes_hacia_mi), 
+                           color_theme = color_theme)
 
 @app.route('/user_page/friends/delete_friend<int:friend_id>')
 def delete_friend(friend_id): # Eliminar una amistad...
@@ -1235,7 +1247,7 @@ def go_private_chat(friend_id: int): # Ir a un chat privado
         if gestionar_chats_privados.es_su_chat_privado(amigo1 = username, amigo2= friend_username):
             id_chat_privado = gestionar_chats_privados.obtener_id_chat_privado(amigo1= username, amigo2= friend_username)
             
-            gestionar_chats_privados.agregar_mensaje_chat_privado_por_id(emisor='Gestión del servidor', fecha_mensaje=Fecha().get_txt_fecha, mensaje=f"{username} se ha unido.", chat_id=id_chat_privado, es_anuncio=True)
+            gestionar_chats_privados.agregar_mensaje_chat_privado_por_id(emisor='Gestión del servidor', fecha_mensaje=Fecha().get_txt_fecha(), mensaje=f"{username} se ha unido.", chat_id=id_chat_privado, es_anuncio=True)
             return redirect(url_for('private_chat', private_chat_id= id_chat_privado))
             
         else:
