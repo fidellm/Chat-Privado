@@ -18,7 +18,7 @@ class Fecha:
             self._set_txt_fecha(day, month, year, hour, minute, second)
 
 
-    def _get_time_now(self): # Método para obtener la fecha y la hora actual (con mlisegundos de diferencia...)
+    def _get_time_now(self) -> str: # Método para obtener la fecha y la hora actual (con mlisegundos de diferencia...)
         
         # Obtener la fecha y hora actual
         fecha_hora_actual = datetime.now()
@@ -28,7 +28,7 @@ class Fecha:
         
         return fecha_hora_español
 
-    def get_txt_fecha(self):
+    def get_txt_fecha(self) -> str:
         return self._txt_fecha
     
     def _set_txt_fecha(self, day: int | str, month: int | str, year: int | str, hour: int | str, minute: int | str, second: int | str):
@@ -46,7 +46,7 @@ class Fecha:
         self._txt_fecha = f'{day}/{month}/{year} {hour}:{minute}:{second}'
 
 
-    def obtener_dict_fecha(self):
+    def get_dict_fecha(self) -> dict['day': str, 'month': str, 'year': str, 'hours': str, 'minutes': str, 'seconds': str]:
         # txtFecha = 'dia/mes/año horas:minutos:segundos'
         txtFecha = self._txt_fecha
 
@@ -66,7 +66,7 @@ class Fecha:
 
         return {'day': day, 'month': month, 'year': year, 'hours': hours, 'minutes': minutes, 'seconds': seconds}
 
-    def _es_año_biciesto(self):
+    def _es_año_biciesto(self) -> bool:
         year = self.obtener_dict_fecha()['year']
 
         return int(year) % 4 == 0
@@ -153,10 +153,129 @@ class Fecha:
 
         # Actualizar Fecha
         self._set_txt_fecha(int_day, int_month, int_year, int_hours, int_minutes, int_seconds)
+        
+    def mayor_que(self, fecha2) -> bool:
+        dict_fecha1 = self.obtener_dict_fecha()
+        dict_fecha2 = fecha2.obtener_dict_fecha()
+        
+        
+        if dict_fecha1['year'] == dict_fecha2['year']:
+            pass
+        elif int(dict_fecha1['year']) > int(dict_fecha2['year']):
+            return True
+        
+        
+        if dict_fecha1['month'] == dict_fecha2['month']:
+            pass
+        elif int(dict_fecha1['month']) > int(dict_fecha2['month']):
+            return True
+        
+        
+        if dict_fecha1['day'] == dict_fecha2['day']:
+            pass
+        elif int(dict_fecha1['day']) > int(dict_fecha2['day']):
+            return True
+        
+        
+        if dict_fecha1['hours'] == dict_fecha2['hours']:
+            pass
+        elif int(dict_fecha1['hours']) > int(dict_fecha2['hours']):
+            return True
+        
+        
+        if dict_fecha1['minutes'] == dict_fecha2['minutes']:
+            pass
+        elif int(dict_fecha1['minutes']) > int(dict_fecha2['minutes']):
+            return True
+        
+        
+        if int(dict_fecha1['seconds']) > int(dict_fecha2['seconds']):
+            return True
+        
+        
+        return False
 
 
+    def menor_que(self, fecha2) -> bool:
+        dict_fecha1 = self.get_dict_fecha()
+        dict_fecha2 = fecha2.get_dict_fecha()
+        
+        
+        if dict_fecha1['year'] == dict_fecha2['year']:
+            pass
+        elif int(dict_fecha1['year']) < int(dict_fecha2['year']):
+            return True
+        
+        
+        if dict_fecha1['month'] == dict_fecha2['month']:
+            pass
+        elif int(dict_fecha1['month']) < int(dict_fecha2['month']):
+            return True
+        
+        
+        if dict_fecha1['day'] == dict_fecha2['day']:
+            pass
+        elif int(dict_fecha1['day']) < int(dict_fecha2['day']):
+            return True
+        
+        
+        if dict_fecha1['hours'] == dict_fecha2['hours']:
+            pass
+        elif int(dict_fecha1['hours']) < int(dict_fecha2['hours']):
+            return True
+        
+        
+        if dict_fecha1['minutes'] == dict_fecha2['minutes']:
+            pass
+        elif int(dict_fecha1['minutes']) < int(dict_fecha2['minutes']):
+            return True
+        
+        
+        if int(dict_fecha1['seconds']) < int(dict_fecha2['seconds']):
+            return True
+        
+        
+        return False
+    
+    
+    def equals(self, fecha2, mute_seconds: bool = False, mute_minutes: bool = False, mute_hours: bool = False, mute_days: bool = False, mute_months: bool = False, mute_years: bool = False) -> bool:
+        dict_fecha1 = self.get_dict_fecha()
+        dict_fecha2 = fecha2.get_dict_fecha()
+        
+        if mute_seconds:
+            dict_fecha1['seconds'] = '00'
+            dict_fecha2['seconds'] = '00'
+        if mute_minutes:
+            dict_fecha1['minutes'] = '00'
+            dict_fecha2['minutes'] = '00'
+        if mute_hours:
+            dict_fecha1['hours'] = '00'
+            dict_fecha2['hours'] = '00'
+        if mute_days:
+            dict_fecha1['day'] = '00'
+            dict_fecha2['day'] = '00'
+        if mute_months:
+            dict_fecha1['month'] = '00'
+            dict_fecha2['month'] = '00'
+        if mute_years:
+            dict_fecha1['year'] = '00'
+            dict_fecha2['year'] = '00'
+            
+        
+        return dict_fecha1 == dict_fecha2
+        
 
-#fecha = Fecha(27, 11, 2023, 20, 34, 0)
+
+fecha = Fecha(27, 11, 2024, 0, 10, 0)
+fecha2 = Fecha(27, 11, 2024, 0, 0, 0)
+
+print(fecha.get_dict_fecha())
+print(fecha2.get_dict_fecha())
+es_igual = fecha.equals(fecha2)
+
+print(es_igual)
+
+
 #fecha.sumar_tiempo(sum_day=1, sum_minutes=126)
 
 #print(fecha.get_txt_fecha())

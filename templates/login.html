@@ -1,211 +1,46 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="https://cdn0.iconfinder.com/data/icons/kameleon-free-pack/110/Hacker-512.png" type="image/x-icon">
+{% extends './base_login-register.html' %}
 
-  <title>Iniciar Sesión</title>
-</head>
-<body>
+{% block title %} Iniciar Sesión {% endblock %}
 
-    <style>
-      body {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
-        padding: 0;
-        background-color: #000;
-        color: #0f0;
-        font-family: 'Courier New', Courier, monospace;
-        line-height: 1.6;
-      }
+{% block body %}
+<div class="form-container">
+  
+    <h1>Iniciar sesión</h1>
 
-      h1 {
-        padding: 0px;
-        border-bottom-style: solid;
-        border-bottom-color: #00e;
+    <form id="userForm" method="POST">
 
-        text-shadow: 0 0 10px rgb(255, 0, 0);
-      }
-
-      h3 {
-        color: aliceblue;
-      }
-      
-      .login-container {
-        text-align: center;
         
-        max-width: 600px;
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+        <h3>{{ message }}</h3>
+        {% endfor %}
+        {% endif %}
+        {%endwith%}
         
-        margin: 0 auto;
-        padding: 20px;
-          
-        border-radius: 6px;
-        border-style: solid;
-        border-color: rgba(0, 0, 255, 0.5);
-        
-        box-shadow: 0 0 30px rgba(218, 0, 0, 0.7);
+        <label for="nickname" id="nickname" >Nombre de usuario:</label>
+        <br>
+        <input type="text" name="username" required>
+        <br>
 
-        box-sizing: border-box;
-      }
-      
-      
-      
-      form {
-        margin-top: 1.7rem;
-        background-color: #000;
-        border: 1px solid #000;
-        border-radius: 5px;
-        padding: 20px;
-        box-shadow: 0 0 10px rgba(218, 0, 0, 0.7);
-      }
+        <label for="user_password">Tu contraseña</label>
+        <br>
+        <input type="password" name="user_password" required>
+        <br>
 
-      #lbl_remember {
-        display: inline;
-      }
-      
-      label {
-        display: block;
-        color: #e00000;
-        margin-bottom: 0px;
-        text-shadow: #0f0 #00ff00 #00ff00 #00ff00;
+        <label for="password">Contraseña de acceso al servidor y sus funciones</label>
+        <br>
+        <input type="password" name="server_password" id="server_password">
+        <br>
 
-        text-shadow: 0 0 10px rgba(240, 248, 255, 0.2);
-      }
+        <label for="remember" id="lbl_remember">Recordarte? </label>
+        <input type="checkbox" name="remember">
+        <br>
 
+        <button type="submit" class="btn_go">Ingresar</button>
+    </form>
 
-      label:hover {
-        color: #eee;
-      }
+    <a href="/register" id="go_register">¿No tienes un usuario? Crea uno.</a>
 
-      
-      #lbl_remember {
-        display: inline;
-      }
-
-      #remember {
-        display: inline;
-      }
-      
-      input {
-        text-align: center;
-
-        padding: 0.8rem;
-        width: calc(100% - 20px); /* Ancho del 100%, ajustado por el padding del formulario */
-      
-        border: 1px solid #0f0;
-        border-radius: 5px;
-        background-color: #000;
-        color: #0f0;
-        width: 100%;
-        padding: 10px;
-        margin-bottom: 16px;
-        box-sizing: border-box;
-      }
-
-      input:hover {
-        color: #e00;
-      }
-      
-      button {
-        width: 30%;
-        padding: 0.8rem 2rem;
-        border: 1px solid #0f0;
-        border-radius: 5px;
-        background-color: #001100;
-        color: #0f0;
-        cursor: pointer;
-        transition: background-color 0.3s;
-      }
-      
-      button:hover {
-        background-color: #005500;
-      }
-      
-      button:active {
-        background-color: #00ff00;
-      }
-
-      a {
-        margin-top: 300px;
-        color: #eee;
-      }
-      a:hover {
-        color: #e00;
-      }
-      
-
-
-      /* Media query para pantallas más pequeñas */
-      @media screen and (max-width: 600px) {
-        form {
-          padding: 10px;
-        }
-
-        input {
-          margin-bottom: 10px;
-        }
-      }
-    </style>
-
-    <div class="login-container">
-      
-        <h1>Iniciar sesión</h1>
-
-        <form id="loginForm" method="POST">
-
-            
-            {% with messages = get_flashed_messages() %}
-            {% if messages %}
-            {% for message in messages %}
-            <h3>{{ message }}</h3>
-            {% endfor %}
-            {% endif %}
-            {%endwith%}
-            
-            <label for="nickname" id="nickname" >Nombre de usuario:</label>
-            <br>
-            <input type="text" name="username" required>
-            <br>
-
-            <label for="user_password">Tu contraseña</label>
-            <br>
-            <input type="password" name="user_password" required>
-            <br>
-
-            <label for="password">Contraseña de acceso al servidor y sus funciones</label>
-            <br>
-            <input type="password" name="server_password" id="server_password">
-            <br>
-
-            <label for="remember" id="lbl_remember">Recordarte? </label>
-            <input type="checkbox" name="remember">
-            <br>
-
-            <button type="submit" class="btn_go">Ingresar</button>
-        </form>
-
-        <a href="/register" id="go_register">¿No tienes un usuario? Crea uno.</a>
-
-    </div>
-
-
-    <script>
-      // Agrega el evento para detectar cuando se copia algo
-      document.addEventListener('copy', function(event) {
-        // Cancela el evento de copia
-        event.preventDefault();
-        // Modifica el texto que se copiará al portapapeles
-        var copiedText = "¡Qué intentaste hacer?";
-        // Copia el texto modificado al portapapeles
-        event.clipboardData.setData('text/plain', copiedText);
-      });
-    </script>
-
-
-</body>
-
-</html>
+</div>
+{% endblock %}
