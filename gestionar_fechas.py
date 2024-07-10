@@ -2,20 +2,20 @@ from datetime import datetime
 
 
 class Fecha:
-    def __init__(self, day: str | int= None, month: str | int= None, year: str | int= None, hour: str | int= None, minute: str | int= None, second: str | int= None) -> None:
+    def __init__(self, day: str | int= None, month: str | int= None, year: str | int= None, hours: str | int= None, minutes: str | int= None, seconds: str | int= None) -> None:
         if (
             (day == None)
             or (month == None)
             or (year == None)
-            or (hour == None)
-            or (minute == None)
-            or (second == None)
+            or (hours == None)
+            or (minutes == None)
+            or (seconds == None)
         ):
 
             self._txt_fecha = self._get_time_now()
         else:
             
-            self._set_txt_fecha(day, month, year, hour, minute, second)
+            self.set_txt_fecha(day, month, year, hours, minutes, seconds)
 
 
     def _get_time_now(self) -> str: # Método para obtener la fecha y la hora actual (con mlisegundos de diferencia...)
@@ -31,16 +31,16 @@ class Fecha:
     def get_txt_fecha(self) -> str:
         return self._txt_fecha
     
-    def _set_txt_fecha(self, day: int | str, month: int | str, year: int | str, hour: int | str, minute: int | str, second: int | str):
-        if len(str(day)) < 2 and (not '00' in str(day) or not '0' in str(day)):
+    def set_txt_fecha(self, day: int | str, month: int | str, year: int | str, hour: int | str, minutes: int | str, seconds: int | str):
+        if len(str(day)) < 2 and (not '00' == str(day) or not '0' in str(day)):
             day = '0' + str(day)
-        if len(str(month)) < 2 and (not '00' in str(month) or not '0' in str(month)):
+        if len(str(month)) < 2 and (not '00' == str(month) or not '0' in str(month)):
             month = '0' + str(month)
-        if len(str(hour)) < 2 and (not '00' in str(hour) or not '0' in str(hour)):
+        if len(str(hour)) < 2 and (not '00' == str(hour) or not '0' in str(hour)):
             hour = '0' + str(hour)
-        if len(str(minute)) < 2 and (not '00' in str(minute) or not '0' in str(minute)):
+        if len(str(minute)) < 2 and (not '00' == str(minute) or not '0' in str(minute)):
             minute = '0' + str(minute)
-        if len(str(second)) < 2 and (not '00' in str(second) or not '0' in str(second)):
+        if len(str(second)) < 2 and (not '00' == str(second) or not '0' in str(second)):
             second = '0' + str(second)
         
         self._txt_fecha = f'{day}/{month}/{year} {hour}:{minute}:{second}'
@@ -65,6 +65,11 @@ class Fecha:
 
 
         return {'day': day, 'month': month, 'year': year, 'hours': hours, 'minutes': minutes, 'seconds': seconds}
+    
+    def set_dict_fecha(self, new_dict_fecha: dict['day': str, 'month': str, 'year': str, 'hours': str, 'minutes': str, 'seconds': str]) -> None:
+        self.set_txt_fecha(day= new_dict_fecha['day'], month= new_dict_fecha['month'], 
+                           year= new_dict_fecha['year'], hours= new_dict_fecha['hour'], 
+                           minutes= new_dict_fecha['minutes'], seconds= new_dict_fecha['seconds'])
 
     def _es_año_biciesto(self) -> bool:
         year = self.obtener_dict_fecha()['year']
@@ -154,9 +159,28 @@ class Fecha:
         # Actualizar Fecha
         self._set_txt_fecha(int_day, int_month, int_year, int_hours, int_minutes, int_seconds)
         
-    def mayor_que(self, fecha2) -> bool:
-        dict_fecha1 = self.obtener_dict_fecha()
-        dict_fecha2 = fecha2.obtener_dict_fecha()
+    def mayor_que(self, fecha2, mute_years: bool= False, mute_months: bool= False, mute_days: bool= False, mute_hours: bool= False, mute_minutes: bool= False, mute_seconds: bool= False) -> bool:
+        dict_fecha1 = self.get_dict_fecha().copy()
+        dict_fecha2 = fecha2.get_dict_fecha().copy()
+        
+        if mute_seconds:
+            dict_fecha1['seconds'] = '00'
+            dict_fecha2['seconds'] = '00'
+        if mute_minutes:
+            dict_fecha1['minutes'] = '00'
+            dict_fecha2['minutes'] = '00'
+        if mute_hours:
+            dict_fecha1['hours'] = '00'
+            dict_fecha2['hours'] = '00'
+        if mute_days:
+            dict_fecha1['day'] = '00'
+            dict_fecha2['day'] = '00'
+        if mute_months:
+            dict_fecha1['month'] = '00'
+            dict_fecha2['month'] = '00'
+        if mute_years:
+            dict_fecha1['year'] = '0000'
+            dict_fecha2['year'] = '0000'
         
         
         if dict_fecha1['year'] == dict_fecha2['year']:
@@ -196,9 +220,28 @@ class Fecha:
         return False
 
 
-    def menor_que(self, fecha2) -> bool:
-        dict_fecha1 = self.get_dict_fecha()
-        dict_fecha2 = fecha2.get_dict_fecha()
+    def menor_que(self, fecha2, mute_years: bool= False, mute_months: bool= False, mute_days: bool= False, mute_hours: bool= False, mute_minutes: bool= False, mute_seconds: bool= False) -> bool:
+        dict_fecha1 = self.get_dict_fecha().copy()
+        dict_fecha2 = fecha2.get_dict_fecha().copy()
+        
+        if mute_seconds:
+            dict_fecha1['seconds'] = '00'
+            dict_fecha2['seconds'] = '00'
+        if mute_minutes:
+            dict_fecha1['minutes'] = '00'
+            dict_fecha2['minutes'] = '00'
+        if mute_hours:
+            dict_fecha1['hours'] = '00'
+            dict_fecha2['hours'] = '00'
+        if mute_days:
+            dict_fecha1['day'] = '00'
+            dict_fecha2['day'] = '00'
+        if mute_months:
+            dict_fecha1['month'] = '00'
+            dict_fecha2['month'] = '00'
+        if mute_years:
+            dict_fecha1['year'] = '0000'
+            dict_fecha2['year'] = '0000'
         
         
         if dict_fecha1['year'] == dict_fecha2['year']:
@@ -238,9 +281,9 @@ class Fecha:
         return False
     
     
-    def equals(self, fecha2, mute_seconds: bool = False, mute_minutes: bool = False, mute_hours: bool = False, mute_days: bool = False, mute_months: bool = False, mute_years: bool = False) -> bool:
-        dict_fecha1 = self.get_dict_fecha()
-        dict_fecha2 = fecha2.get_dict_fecha()
+    def equals(self, fecha2, mute_seconds: bool= False, mute_minutes: bool= False, mute_hours: bool= False, mute_days: bool= False, mute_months: bool= False, mute_years: bool= False) -> bool:
+        dict_fecha1 = self.get_dict_fecha().copy()
+        dict_fecha2 = fecha2.get_dict_fecha().copy()
         
         if mute_seconds:
             dict_fecha1['seconds'] = '00'
@@ -258,11 +301,86 @@ class Fecha:
             dict_fecha1['month'] = '00'
             dict_fecha2['month'] = '00'
         if mute_years:
-            dict_fecha1['year'] = '00'
-            dict_fecha2['year'] = '00'
+            dict_fecha1['year'] = '0000'
+            dict_fecha2['year'] = '0000'
             
         
         return dict_fecha1 == dict_fecha2
+    
+    def diferencia(self, fecha2, type_return: str= 'int' | 'float' | 'str' | 'Fecha()', diferencia_en: str= 'seconds' | 'minutes' | 'hours' | 'days' | 'months' | 'years') -> int | float | str:
+        dict_fecha1 = self.get_dict_fecha()
+        dict_fecha2 = fecha2.get_dict_fecha()
+        
+        if diferencia_en == 'seconds':
+            dict_fecha1['minutes'] == '00'
+            dict_fecha1['hours'] == '00'
+            dict_fecha1['day'] == '00'
+            dict_fecha1['month'] == '00'
+            dict_fecha1['year'] == '00'
+            
+            dict_fecha1['minutes'] == '00'
+            dict_fecha2['hours'] == '00'
+            dict_fecha2['day'] == '00'
+            dict_fecha2['month'] == '00'
+            dict_fecha2['year'] == '00'
+        
+        if diferencia_en == 'minutes':
+            dict_fecha1['seconds'] == '00'
+            dict_fecha1['hours'] == '00'
+            dict_fecha1['day'] == '00'
+            dict_fecha1['month'] == '00'
+            dict_fecha1['year'] == '00'
+            
+            dict_fecha2['seconds'] == '00'
+            dict_fecha2['hours'] == '00'
+            dict_fecha2['day'] == '00'
+            dict_fecha2['month'] == '00'
+            dict_fecha2['year'] == '00'
+            
+        if diferencia_en == 'hours':
+            dict_fecha1['seconds'] == '00'
+            dict_fecha1['minutes'] == '00'
+            dict_fecha1['day'] == '00'
+            dict_fecha1['month'] == '00'
+            dict_fecha1['year'] == '00'
+            
+            dict_fecha2['seconds'] == '00'
+            dict_fecha2['minutes'] == '00'
+            dict_fecha2['day'] == '00'
+            dict_fecha2['month'] == '00'
+            dict_fecha2['year'] == '00'
+            
+        if diferencia_en == 'days':
+            dict_fecha1['seconds'] == '00'
+            dict_fecha1['minutes'] == '00'
+            dict_fecha1['hours'] == '00'
+            dict_fecha1['month'] == '00'
+            dict_fecha1['year'] == '00'
+            
+            dict_fecha2['seconds'] == '00'
+            dict_fecha2['minutes'] == '00'
+            dict_fecha2['hours'] == '00'
+            dict_fecha2['month'] == '00'
+            dict_fecha2['year'] == '00'
+            
+        if diferencia_en == 'years':
+            dict_fecha1['seconds'] == '00'
+            dict_fecha1['minutes'] == '00'
+            dict_fecha1['hours'] == '00'
+            dict_fecha1['day'] == '00'
+            dict_fecha1['month'] == '00'
+            
+            dict_fecha2['seconds'] == '00'
+            dict_fecha2['minutes'] == '00'
+            dict_fecha2['hours'] == '00'
+            dict_fecha2['day'] == '00'
+            dict_fecha2['month'] == '00'
+        
+        
+        fecha2_segundos = int(dict_fecha2['seconds'])
+        fecha1_segundos = int(dict_fecha1['seconds'])
+        
+        ## Metodo no terminado...
         
 
 

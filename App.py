@@ -1,5 +1,5 @@
 import os
-from flask import Flask, redirect, render_template, request, session, url_for, flash
+from flask import Flask, redirect, render_template, request, session, url_for, flash, Response
 from gestionar_fechas import Fecha
 from datetime import datetime
 import gestionar_database as gs
@@ -39,17 +39,17 @@ app.secret_key = os.getenv("SECRET", secret_key)
 
 messages = []
 
-clave_super_secreta = "amigos1234"
+clave_super_secreta = "legión1234"
 
-array_admins = {"Alpha": "arrozfilo27", 'Bravo': 'arroz1234', "Corvus": "1920", "Delta": "nacho1234"}
+array_admins = {"Alpha": "arrozfilo27", 'Bravo': 'arroz1234', "Corvus": "1920", "Delta": "nacho0519"}
 
-def saber_si_se_parece_admin(nombre: str):
+def saber_si_se_parece_admin(nombre: str) -> bool:
     for i in array_admins:
         if nombre.lower() in i.lower():
             return True
     return False
 
-def saber_si_es_admin(name: str, password: str):
+def saber_si_es_admin(name: str, password: str) -> bool:
     for i in array_admins:
         if i.lower() == name.lower() and array_admins[i] == password:
             return True
@@ -63,7 +63,7 @@ lista_usuarios_registrados = []
 lista_usuarios_en_el_chat_public = []
 usuarios_bloqueados_del_chat_public = []
 
-def quitar_usuario_lista_en_chat_public(name: str):
+def quitar_usuario_lista_en_chat_public(name: str) -> None:
     contador = 0
     
     for i in lista_usuarios_en_el_chat_public:
@@ -75,7 +75,7 @@ def quitar_usuario_lista_en_chat_public(name: str):
         contador += 1
             
 
-def agregar_usuario_lista_en_chat_public(name: str, is_admin: bool):
+def agregar_usuario_lista_en_chat_public(name: str, is_admin: bool) -> None:
     gestionar = gs.Gestionar_usuarios()
     
     quitar_usuario_lista_en_chat_public(name= name)
@@ -86,7 +86,7 @@ def agregar_usuario_lista_en_chat_public(name: str, is_admin: bool):
 
 
 
-def actualizar_ultima_conexion_usuario(username: str, ultima_conexion: str = None): # Método para actualizar la última conexión de un usuario normal...
+def actualizar_ultima_conexion_usuario(username: str, ultima_conexion: str = None) -> None: # Método para actualizar la última conexión de un usuario normal...
     gestionar = gs.Gestionar_usuarios()
     
     #print("ESTE ESSS EL NOMBRE DE USUARIOOOO ===== " + username)
@@ -100,7 +100,7 @@ def actualizar_ultima_conexion_usuario(username: str, ultima_conexion: str = Non
     gestionar.actualizar_ultima_conexion(nombre=username, ultima_conexion=now.get_txt_fecha())
 
 
-def add_message(username, message, is_management_server: bool = False): # Método para agregar un mensaje al chat público
+def add_message(username, message, is_management_server: bool = False) -> None: # Método para agregar un mensaje al chat público
     """ Add messages to the 'messages' list """
     """ 1st set of {} refers to 1st argument = username """
     """ 2nd set of {} refers to 2nd argument = message """
@@ -119,7 +119,7 @@ def add_message(username, message, is_management_server: bool = False): # Métod
 
 
 @app.route('/', methods = ["GET", "POST"]) # route decorator that aligns to index.html
-def Index(): # Apartado raíz para iniciar sesión
+def Index() -> str: # Apartado raíz para iniciar sesión
     try:
         username = session['username']
         user_password = session['user_password']
@@ -203,7 +203,7 @@ def Index(): # Apartado raíz para iniciar sesión
     return render_template("login.html")
 
 @app.route('/register', methods = ["GET", "POST"])
-def register(): # Apartado para registrar un usuario
+def register() -> str: # Apartado para registrar un usuario
     session['remember_me'] = False
     session['go_chat'] = False
     
@@ -275,7 +275,7 @@ def register(): # Apartado para registrar un usuario
     return render_template("register.html")
 
 @app.route('/clean_user')
-def clean_user(): # Método para limpiar toda la sesión de un usuario
+def clean_user() -> Response: # Método para limpiar toda la sesión de un usuario
     try:
         quitar_usuario_lista_en_chat_public(session['username'])
     except:
@@ -290,7 +290,7 @@ def clean_user(): # Método para limpiar toda la sesión de un usuario
 
 
 @app.route('/user_page')
-def user_page(): # Menú inicio de los usuarios...
+def user_page() -> str: # Menú inicio de los usuarios...
     try:
         username = session["username"]
         user_password = session['user_password']
@@ -351,7 +351,7 @@ def user_page(): # Menú inicio de los usuarios...
     return render_template("menu_user.html", username= username, title= 'Menú de usuario', color_theme= color_theme)
 
 @app.route('/user_page/settings/change_color_theme=<color_theme>')
-def change_color_theme_frontend_web(color_theme: str):
+def change_color_theme_frontend_web(color_theme: str) -> Response:
     try:
         username = session["username"]
         user_password = session['user_password']
@@ -400,7 +400,7 @@ def change_color_theme_frontend_web(color_theme: str):
     return redirect(url_for('user_page'))
 
 @app.route('/user_page/logout')
-def logout(): # Cerrar sesión
+def logout() -> Response: # Cerrar sesión
     try:
         gestionar = gs.Gestionar_usuarios()
         
@@ -427,7 +427,7 @@ def logout(): # Cerrar sesión
     
 
 @app.route('/user_page/friends')
-def menu_friends(): # Menú para que los usuarios gestionen sus amistades...
+def menu_friends() -> str | Response: # Menú para que los usuarios gestionen sus amistades...
     try:
         username = session["username"]
         user_password = session['user_password']
@@ -497,7 +497,7 @@ def menu_friends(): # Menú para que los usuarios gestionen sus amistades...
                            color_theme = color_theme)
 
 @app.route('/user_page/friends/delete_friend<int:friend_id>')
-def delete_friend(friend_id): # Eliminar una amistad...
+def delete_friend(friend_id) -> Response: # Eliminar una amistad...
     try:
         username = session["username"]
         user_password = session['user_password']
@@ -556,7 +556,7 @@ def delete_friend(friend_id): # Eliminar una amistad...
 
 
 @app.route('/user_page/friends/requests/send', methods= ["GET", "POST"])
-def send_friend_request(): # Mandar solicitud de amistad...
+def send_friend_request() -> Response: # Mandar solicitud de amistad...
     try:
         username = session["username"]
         user_password = session['user_password']
@@ -635,7 +635,7 @@ def send_friend_request(): # Mandar solicitud de amistad...
         return redirect(url_for('menu_friends')) # Regresa al menú de amigos
 
 @app.route('/user_page/friends/requests') # Apartado de solicitudes de amistad
-def friend_requests(): # Apartado para que el usuario gestione sus solicitudes de amistad (enviadas y recibidas)
+def friend_requests() -> str | Response: # Apartado para que el usuario gestione sus solicitudes de amistad (enviadas y recibidas)
     try:
         username = session["username"]
         user_password = session['user_password']
@@ -686,7 +686,7 @@ def friend_requests(): # Apartado para que el usuario gestione sus solicitudes d
     return render_template('friend_requests.html', username = username, is_admin = es_admin, requests_to_user = solicitudes_hacia_el_usuario, requests_from_user = solicitudes_del_usuario)
 
 @app.route('/user_page/friends/requests/accept<int:request_id>') # Aceptar una solicitud de amistad
-def accept_friend_request(request_id: int): # Aceptar solicitud de amistad recibida
+def accept_friend_request(request_id: int) -> Response: # Aceptar solicitud de amistad recibida
     try:
         username = session["username"]
         user_password = session['user_password']
@@ -748,7 +748,7 @@ def accept_friend_request(request_id: int): # Aceptar solicitud de amistad recib
     return redirect(url_for('friend_requests'))
 
 @app.route('/user_page/friends/requests/from_me/cancel<int:friend_id>') #Cancelar solicitud de amistad enviada
-def cancel_friend_request_from_me(friend_id: int): # Cancelar solicitud de amistad enviada...
+def cancel_friend_request_from_me(friend_id: int) -> Response: # Cancelar solicitud de amistad enviada...
     try:
         username = session["username"]
         user_password = session['user_password']
@@ -856,7 +856,7 @@ def reject_friend_request_for_me(request_id: int): # Rechazar solicitud de amist
 
 
 @app.route('/chat/public/go', methods = ["GET", "POST"])
-def go_chat(): # Ir al chat público
+def go_chat() -> Response: # Ir al chat público
     
     try:
         username = session["username"]
@@ -907,7 +907,7 @@ def go_chat(): # Ir al chat público
 
 
 @app.route('/chat/public', methods = ["GET", "POST"])
-def chat_public(): # Chat público
+def chat_public() -> str | Response: # Chat público
     """ Add & Display chat messages. {0} = username argument """
     """ username & messages get added to the list """
 
@@ -969,7 +969,7 @@ def chat_public(): # Chat público
 
 
 @app.route('/chat/public/delete')
-def delete_chat_public(): # Eliminar todos los mensajes del chat público
+def delete_chat_public() -> Response: # Eliminar todos los mensajes del chat público
     try:
         username = session["username"]
         user_password = session["user_password"]
@@ -1015,7 +1015,7 @@ def delete_chat_public(): # Eliminar todos los mensajes del chat público
     return redirect(url_for("chat_public"))
 
 @app.route('/chat/public/delete/<int:id_message>')
-def delete_message_chat_public(id_message: int): # Eliminar un mensaje del chat público
+def delete_message_chat_public(id_message: int) -> Response: # Eliminar un mensaje del chat público
     try:
         username = session["username"]
         user_password = session["user_password"]
@@ -1070,7 +1070,7 @@ def delete_message_chat_public(id_message: int): # Eliminar un mensaje del chat 
 
 
 @app.route('/chat/private/menu/<string:saber_crear_chat>')
-def menu_private_chats(saber_crear_chat: str = 'no'): # Menú para que el usuario gestione sus chats privados...
+def menu_private_chats(saber_crear_chat: str = 'no') -> str | Response: # Menú para que el usuario gestione sus chats privados...
     try:
         username = session["username"]
         user_password = session["user_password"]
@@ -1130,7 +1130,7 @@ def menu_private_chats(saber_crear_chat: str = 'no'): # Menú para que el usuari
         return render_template('private_chats_menu.html', username= username, is_admin= es_admin, friends_list = lista_amistades, create_chat= [False])
 
 @app.route('/chat/private/create/<int:friend_id>')
-def create_private_chat(friend_id: int): # Para que el usuario cree un chat privado con un amigo
+def create_private_chat(friend_id: int) -> Response: # Para que el usuario cree un chat privado con un amigo
     try:
         username = session["username"]
         user_password = session["user_password"]
@@ -1186,7 +1186,7 @@ def create_private_chat(friend_id: int): # Para que el usuario cree un chat priv
             gestionar_chats_privados.crear_chat_privado(amigo1= username, amigo2= friend_username)
             chat_id = gestionar_chats_privados.obtener_id_chat_privado(amigo1= username, amigo2= friend_username)
             
-            gestionar_chats_privados.agregar_mensaje_chat_privado_por_id(emisor= 'Gestión del servidor', fecha_mensaje=Fecha, mensaje=f"'{username}' ha creado el chat con '{friend_username}...'", chat_id= chat_id, es_anuncio= True)
+            gestionar_chats_privados.agregar_mensaje_chat_privado_por_id(emisor= 'Gestión del servidor', fecha_mensaje=Fecha().get_txt_fecha(), mensaje=f"'{username}' ha creado el chat con '{friend_username}...'", chat_id= chat_id, es_anuncio= True)
             return redirect(url_for('go_private_chat', friend_id= friend_id))
         
     else:
@@ -1195,7 +1195,7 @@ def create_private_chat(friend_id: int): # Para que el usuario cree un chat priv
     return redirect(url_for('menu_private_chats', saber_crear_chat= 'no'))
 
 @app.route('/chat/private/go/<int:friend_id>')
-def go_private_chat(friend_id: int): # Ir a un chat privado
+def go_private_chat(friend_id: int) -> Response: # Ir a un chat privado
     try:
         username = session["username"]
         user_password = session["user_password"]
@@ -1259,7 +1259,7 @@ def go_private_chat(friend_id: int): # Ir a un chat privado
         return redirect(url_for('menu_private_chats', saber_crear_chat= 'yes'+ str(friend_id)))
 
 @app.route('/chat/private/chat<int:private_chat_id>', methods= ["GET", "POST"])
-def private_chat(private_chat_id: int): # Un chat privado
+def private_chat(private_chat_id: int) -> str | Response: # Un chat privado
     try:
         username = session["username"]
         user_password = session["user_password"]
@@ -1336,7 +1336,7 @@ def private_chat(private_chat_id: int): # Un chat privado
                            url_chat_delete = f'/chat/private/chat{private_chat_id}/delete_message/all', url_message_delete= f'/chat/private/chat{private_chat_id}/delete_message/')
 
 @app.route('/chat/private/chat<int:private_chat_id>/delete_message/all')
-def delete_all_messages_private_chat(private_chat_id: int): # Eliminar todos los mensajes de un chat privado
+def delete_all_messages_private_chat(private_chat_id: int) -> Response: # Eliminar todos los mensajes de un chat privado
     try:
         username = session["username"]
         user_password = session["user_password"]
