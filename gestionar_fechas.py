@@ -31,19 +31,19 @@ class Fecha:
     def get_txt_fecha(self) -> str:
         return self._txt_fecha
     
-    def set_txt_fecha(self, day: int | str, month: int | str, year: int | str, hour: int | str, minutes: int | str, seconds: int | str):
+    def set_txt_fecha(self, day: int | str, month: int | str, year: int | str, hours: int | str, minutes: int | str, seconds: int | str):
         if len(str(day)) < 2 and (not '00' == str(day) or not '0' in str(day)):
             day = '0' + str(day)
         if len(str(month)) < 2 and (not '00' == str(month) or not '0' in str(month)):
             month = '0' + str(month)
-        if len(str(hour)) < 2 and (not '00' == str(hour) or not '0' in str(hour)):
-            hour = '0' + str(hour)
-        if len(str(minute)) < 2 and (not '00' == str(minute) or not '0' in str(minute)):
-            minute = '0' + str(minute)
-        if len(str(second)) < 2 and (not '00' == str(second) or not '0' in str(second)):
-            second = '0' + str(second)
+        if len(str(hours)) < 2 and (not '00' == str(hours) or not '0' in str(hours)):
+            hours = '0' + str(hours)
+        if len(str(minutes)) < 2 and (not '00' == str(minutes) or not '0' in str(minutes)):
+            minutes = '0' + str(minutes)
+        if len(str(seconds)) < 2 and (not '00' == str(seconds) or not '0' in str(seconds)):
+            seconds = '0' + str(seconds)
         
-        self._txt_fecha = f'{day}/{month}/{year} {hour}:{minute}:{second}'
+        self._txt_fecha = f'{day}/{month}/{year} {hours}:{minutes}:{seconds}'
 
 
     def get_dict_fecha(self) -> dict['day': str, 'month': str, 'year': str, 'hours': str, 'minutes': str, 'seconds': str]:
@@ -307,7 +307,7 @@ class Fecha:
         
         return dict_fecha1 == dict_fecha2
     
-    def diferencia(self, fecha2, type_return: str= 'int' | 'float' | 'str' | 'Fecha()', diferencia_en: str= 'seconds' | 'minutes' | 'hours' | 'days' | 'months' | 'years') -> int | float | str:
+    def diferencia(self, fecha2, type_return: str, diferencia_en: str) -> int | float | str:
         dict_fecha1 = self.get_dict_fecha()
         dict_fecha2 = fecha2.get_dict_fecha()
         
@@ -382,19 +382,3 @@ class Fecha:
         
         ## Metodo no terminado...
         
-
-
-fecha = Fecha(27, 11, 2024, 0, 10, 0)
-fecha2 = Fecha(27, 11, 2024, 0, 0, 0)
-
-print(fecha.get_dict_fecha())
-print(fecha2.get_dict_fecha())
-es_igual = fecha.equals(fecha2)
-
-print(es_igual)
-
-
-#fecha.sumar_tiempo(sum_day=1, sum_minutes=126)
-
-#print(fecha.get_txt_fecha())
-

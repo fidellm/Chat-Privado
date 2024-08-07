@@ -722,3 +722,6 @@ class Gestionar_chats_privados():
         
         return datos_chat[1] == nombre or datos_chat[2] == nombre
 
+
+
+print(Gestionar_usuarios().listar_id_nombre_clave())
